@@ -1,0 +1,21 @@
+method,quartile,mean_coverage,se_coverage,n_reps
+DISCOM-CP,Q1 (lowest),0.7693,0.0016,2000
+DISCOM-CP,Q2,0.9918,0.0002,2000
+DISCOM-CP,Q3,0.999,0.0,2000
+DISCOM-CP,Q4 (highest),0.9027,0.0009,2000
+WCP,Q1 (lowest),0.7781,0.001,2000
+WCP,Q2,0.9937,0.0001,2000
+WCP,Q3,0.9994,0.0,2000
+WCP,Q4 (highest),0.9089,0.0005,2000
+Split Conformal,Q1 (lowest),0.8563,0.0007,2000
+Split Conformal,Q2,0.9982,0.0001,2000
+Split Conformal,Q3,0.9999,0.0,2000
+Split Conformal,Q4 (highest),0.9461,0.0004,2000
+Oracle,Q1 (lowest),0.7507,0.0016,2000
+Oracle,Q2,0.9902,0.0002,2000
+Oracle,Q3,0.9988,0.0001,2000
+Oracle,Q4 (highest),0.8934,0.0009,2000
+RCP,Q1 (lowest),1.0,0.0,2000
+RCP,Q2,1.0,0.0,2000
+RCP,Q3,1.0,0.0,2000
+RCP,Q4 (highest),1.0,0.0,2000
