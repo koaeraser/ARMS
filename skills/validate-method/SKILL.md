@@ -46,6 +46,8 @@ Write to `pipeline/phase2_validate/` directory:
 | `validated_code/` | Working Python implementation (method + comparator + evaluation scripts) |
 | `validated_results/` | CSV result tables, key figures |
 | `iteration_log.md` | Append-only log of each iteration attempt |
+| `comparator_inventory.md` | Brief-promised vs implemented comparators; gate=COMPLETE/INCOMPLETE (single source for downstream skills) |
+| `formula_audit_seed.md` | Optional: any spec↔code discrepancies you noticed, for paper-modeler reuse in Phase 3 |
 
 ---
 
@@ -105,6 +107,45 @@ Write to `pipeline/phase2_validate/` directory:
    - Does the method complete in <5 seconds for a single evaluation?
 
 Write implementation to `pipeline/phase2_validate/validated_code/`.
+
+### Step 1.5: Build Comparator Inventory (MANDATORY)
+
+Before running any experiment, extract the comparator list from
+`research_brief.md` (look for "Comparator methods" or equivalent section).
+For each, locate or implement the corresponding code module.
+
+Write `pipeline/phase2_validate/comparator_inventory.md`:
+
+```markdown
+# Comparator Inventory (validate-method-owned)
+
+## Comparators promised by research_brief.md
+| ID | Method name | Citation | Section in brief |
+
+## Comparators implemented in validated_code/
+| ID | Module:class | Implementation status (FULL | PARTIAL | MISSING) | Reason if not FULL |
+
+## Coverage: brief vs implemented
+| Brief ID | Implemented? | If MISSING: rationale (must be substantive) |
+
+## Gate result: COMPLETE | INCOMPLETE
+INCOMPLETE blocks Phase 2 verdict from being GO/CONDITIONAL_GO without
+explicit downgrade. INCOMPLETE-with-rationale (e.g., "comparator X requires
+proprietary data not in our brief's data assets") may proceed if the
+rationale is recorded here.
+
+## Downstream contract
+- paper-modeler: every ID with status=FULL must appear in EVERY production CSV
+  under `pipeline/phase3_write/data/`. No silent drops.
+- paper-writer: every FULL ID must appear in every results table.
+- paper-grader: verifies (a) inventory file exists, (b) every FULL ID present in
+  every table; does NOT re-derive the list from the brief.
+```
+
+If the inventory is INCOMPLETE: do **NOT** issue verdict GO. Either implement
+the missing comparators (preferred) or document a substantive rationale in
+the inventory and downgrade to CONDITIONAL_GO with conditions explicitly
+listing the missing comparators.
 
 ### Step 2: QUICK VALIDATION
 
@@ -351,6 +392,11 @@ Before finalizing any experiment results, verify ALL of these:
 
 - [ ] **Formula correctness**: every equation in the spec has a corresponding code line.
       Read the spec equation, read the code, confirm they match symbol-by-symbol.
+      *Note*: Phase 3's paper-modeler will produce the canonical
+      `formula_code_audit.md`. Phase 2's check is preliminary — record any
+      spec↔code discrepancies you find as a candidate-row TODO list at
+      `pipeline/phase2_validate/formula_audit_seed.md` so paper-modeler
+      doesn't have to re-discover them.
 - [ ] **Metric computation**: verify primary and secondary metrics are computed correctly and not confused
 - [ ] **Boundary conditions**: verify boundary conditions in metric computations (e.g., `<=` vs `<` for interval containment)
 - [ ] **Key parameter consistency**: key parameters are consistent across all evaluations (same value everywhere)
@@ -373,6 +419,8 @@ Before finalizing any experiment results, verify ALL of these:
 - If a comparator fails to run: debug it, don't omit it
 - A result without a comparator is not a result — it's a number without context
 - If the comparator implementation is unclear: read the original paper, don't guess
+- Cross-check against `pipeline/phase2_validate/comparator_inventory.md` before
+  marking any experiment complete. Every FULL inventory ID must produce a result.
 
 ---
 

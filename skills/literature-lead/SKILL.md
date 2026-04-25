@@ -13,6 +13,16 @@ writing. You coordinate subagents and ensure quality.
 In the v2 pipeline, this literature review serves **writing and positioning**,
 not method design (that was Phase 1's job). You produce a briefing that helps
 the Paper Writer:
+
+**Scope expansion:** While the primary purpose is positioning, you must also
+flag any paper that: (a) contains a result our method is a special case of
+(threatens novelty), (b) has a technique that could extend our method
+(opportunity), or (c) has empirical findings that contradict our claims (risk).
+Write these flags to the literature briefing under a section called
+"## Flags for Authors" — these are not for the manuscript, they are for the
+human authors to consider during revision.
+
+The Paper Writer uses this briefing to:
 - Frame the contribution against existing work
 - Write a compelling Related Work section
 - Cite properly and completely
@@ -53,7 +63,32 @@ Write to the briefings directory specified by the orchestrator (typically
 
 ---
 
-## Phase 1: Triage Papers
+## Phase 0: Read Phase 1 Literature Briefing (MANDATORY — reuse, don't redo)
+
+Before triaging any reference papers from the brief, read
+`pipeline/phase1_think/briefings/literature_briefing.md` (produced by
+methodology-architect in Phase 1). Extract:
+  - Papers already read deeply in Phase 1 (with their key takeaways)
+  - The Provides/Needs matrix
+  - Positioning Seeds (established competitors, parallel work, cross-disciplinary anchors)
+  - Coverage Gaps the architect explicitly flagged for Phase 3 to fill
+
+For papers in the architect's list:
+  - DO NOT re-dispatch deep readers. Reuse the architect's `method_lit_*.md`
+    extractions (READ them from disk, copy their key results into your
+    per-paper `lit_*.md` as "Inherited from Phase 1" sections).
+  - You MAY dispatch a SECONDARY reader (lighter template) only if you need
+    venue-positioning details (e.g., word-count match, citation count) the
+    architect didn't extract.
+
+For Coverage Gaps the architect listed:
+  - Dispatch fresh readers ONLY for these gaps. This is your incremental work.
+
+Record in your output summary the count of papers reused vs. newly dispatched.
+If `pipeline/phase1_think/briefings/literature_briefing.md` does not exist,
+proceed with full Phase 1 triage and note the missing file in your output.
+
+## Phase 1: Triage Papers (incremental — only Coverage Gaps)
 
 Read the research brief to understand the project. Then classify each
 reference paper:
@@ -62,6 +97,10 @@ reference paper:
   Reader each with the full deep extraction template.
 - **Secondary**: Background papers, related methods, guidelines. Batch 2-3
   per Reader with a lighter extraction template.
+
+**Skip any paper already covered in the Phase 1 briefing** unless venue
+positioning specifically requires fresh extraction. Typical fresh dispatches
+after Phase 0: 2–4 (down from 6–10 before the bridge existed).
 
 ## Phase 2: Dispatch Readers (Parallel)
 

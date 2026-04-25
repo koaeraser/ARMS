@@ -25,6 +25,40 @@ Called by `write-manuscript` (Phase D: Writing). Not user-invocable.
 
 ---
 
+## Pedagogical Triage (before writing)
+
+Before writing the Introduction or Results, scan all results (CSVs, tables,
+figures) and rate each finding's surprise level:
+- **EXPECTED**: A competent statistician would predict this before seeing the data.
+- **MILDLY SURPRISING**: Somewhat counterintuitive or larger in magnitude than expected.
+- **GENUINELY SURPRISING**: Most readers would not predict this.
+
+The Introduction's motivating example MUST be the most GENUINELY SURPRISING
+finding, presented concretely with numbers. If no finding is genuinely
+surprising, lead with the most practically useful finding instead.
+
+## Definition Development Rule
+
+Every quantity that receives a formal Definition environment in the manuscript
+MUST receive proportional analytical treatment:
+- At least one experiment or analysis where it is the primary focus (not just
+  a column in someone else's table)
+- A discussion of when it should be preferred over alternatives
+- If two variants are defined (e.g., IF and IF-O), at least one comparison
+  showing when they diverge and which is preferable
+
+If a quantity does not merit this treatment, do not give it a formal
+Definition. Mention it in a Remark instead.
+
+## Investigative Budget
+
+You have a budget of up to 15% of your context window for unstructured
+exploration — following a surprising pattern in the results, working through
+a counterexample, asking "what if this finding is an artifact?" Document
+what you investigated in the decision log.
+
+---
+
 ## Working Style
 
 1. **Read existing manuscript first.** Always read the current `.tex` file to
@@ -107,22 +141,25 @@ established competitor, not against the non-informative baseline.
 3. Special cases and connections to prior work
 4. Computational details
 
-### Formula-Code Consistency Check (MANDATORY for Methods section)
+### Formula-Code Consistency (read from canonical audit, do NOT re-derive)
 
-After writing ANY equation in the Methods or Theoretical Properties section,
-verify it against the corresponding code implementation:
+paper-modeler produces the canonical formula↔code audit at
+`pipeline/phase3_write/briefings/formula_code_audit.md`. For every equation
+you write, copy the **Code-correct LaTeX** column from the corresponding row.
 
-1. **Read the code**: For each equation, identify the function that
-   implements it in the validated code. Read the actual code, not just comments.
-2. **Compare term-by-term**: Verify that every mathematical operation in the
-   LaTeX equation matches the code exactly. Pay special attention to:
-   - Index offsets (0-based vs 1-based)
-   - Boundary conditions (e.g., floored at 0 vs floored at some other value)
-   - Normalization constants (e.g., 1/n vs 1/(n-1), missing scale factors)
-   - Parameter ordering (e.g., shape/rate vs shape/scale conventions)
-3. **Report any discrepancy**: If the equation and code disagree, the CODE
-   is authoritative (it produced the results). Correct the equation to match
-   the code. If the code seems wrong, flag it as a CRITICAL blocker.
+Procedure:
+1. Read `formula_code_audit.md`. Locate the row for the equation you are writing
+   (by Eq# or section).
+2. Use the **Code-correct LaTeX** column verbatim. Do NOT re-derive from the
+   spec or the code yourself.
+3. If the audit row is MISMATCH and provides a code-correct expression, use it.
+   If MATCH, the spec LaTeX and code are aligned — use either.
+4. **Blockers**:
+   - If `formula_code_audit.md` does not exist → CRITICAL blocker.
+   - If the audit has any unresolved MISMATCH row without a code-correct LaTeX
+     value → CRITICAL blocker.
+   - If you write a NEW equation not in the audit (NEW_IN_PAPER) → CRITICAL
+     blocker (return to paper-modeler to re-audit).
 
 ### Theoretical Properties (if applicable for the domain)
 
@@ -169,51 +206,45 @@ Structure it as follows (5 focused topics, not 7+):
 
 ---
 
-## Anomaly Detection and Honest Interpretation Protocol (MANDATORY)
+## Anomaly Interpretation Protocol (MANDATORY — read canonical log)
 
-**Before finalizing the Discussion section**, complete this anomaly scan.
-The grader penalizes Rigor for unexplained anomalies and uninterpreted
-null-like findings.
+**Before finalizing the Discussion section**, read the canonical anomaly
+catalog: `pipeline/phase3_write/briefings/anomaly_log.md` (paper-modeler-owned).
+Do NOT re-scan CSVs for anomalies — paper-modeler has already done this and
+the audit is canonical. Your job is **interpretation**.
 
-### Step 1: Scan Results Tables for Anomalies
+### Step 1: Read anomaly_log.md
 
-Read every results table. For each table, check:
-1. **Performance reversals**: Any cell where the proposed method performs
-   SUBSTANTIALLY worse than a baseline? (>10% relative difference)
-2. **Identical metrics across methods**: Rows where ALL methods produce the
-   exact same number? (informative prior has zero differential impact)
-3. **Non-monotonic patterns**: Any metric that behaves surprisingly across
-   a sweep parameter?
+Extract every anomaly with Type 1 (performance reversal), Type 2 (identical
+metric), or Type 3 (non-monotonicity). Type 4–5 (zero-impact, excessive MC
+noise) are optional but recommended.
 
-### Step 2: Explain Every Anomaly in the Discussion
+### Step 2: Discussion paragraph per Type 1–3 anomaly
 
-For each anomaly:
-- **What** (state explicitly with exact numbers)
+For each Type 1–3 anomaly, write a Discussion paragraph that **references
+its ID** and covers:
+- **What** (state explicitly with exact numbers from the log)
 - **Why** (mechanistic explanation with data, not speculation)
 - **When** it resolves (at what sample size or parameter setting)
 - **What it means for practitioners**
 
-### Step 3: Address Zero-Impact Scenarios
-
-If the method and baseline produce identical results in some scenarios, the
-Discussion MUST acknowledge it and explain where the method's value lies instead.
-
-### Step 4: Include Counterfactual Reasoning
+### Step 3: Counterfactual Reasoning
 
 When conservative hyperparameters are used, compare quantitatively to what
 would happen under aggressive settings. This demonstrates that conservatism
 is principled, not arbitrary.
 
-### Step 5: Record Anomaly Scan in Output
+### Step 4: Record Anomaly Coverage in Output
 
 ```
-## Anomaly Scan
-- Tables scanned: [N]
-- Anomalies found: [N]
-- Performance reversals: [list]
-- Zero-impact scenarios: [list]
-- All anomalies explained in Discussion: YES/NO
+## Anomaly Coverage
+- Anomalies in log (Type 1–3): [N]
+- Discussion references by ID: [N]
+- Coverage: [N/N]
+- Missing references (BLOCKER if non-zero): [list of IDs]
 ```
+
+If `anomaly_log.md` does not exist → CRITICAL blocker (return to paper-modeler).
 
 ---
 
@@ -286,11 +317,15 @@ If a CSV file does not exist for a particular analysis, report it as a
 
 ---
 
-## Comparator Completeness Gate
+## Comparator Completeness Gate (read inventory)
 
-Before finalizing ANY results table, verify that ALL comparator methods listed
-in the research brief appear in the table. If a comparator's results are not
-in the data CSVs, report as a **CRITICAL blocker**.
+Before finalizing ANY results table, read
+`pipeline/phase2_validate/comparator_inventory.md` (validate-method-owned).
+Every comparator with status=FULL must appear in the table.
+
+If a FULL comparator is absent from the data CSVs, report as a **CRITICAL
+blocker** — this means paper-modeler dropped one. Do NOT re-derive the comparator
+list from the brief; the inventory is authoritative.
 
 ---
 

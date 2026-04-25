@@ -58,6 +58,10 @@ When reviewing manuscript sections, compare against reference papers:
 
 ## Severity Definitions
 
+These severities map directly to paper-grader dimensions and to revision-loop's
+compliance vocabulary. Authoritative crosswalk:
+**`~/.claude/skills/_shared/scoring_rubric.md`** (read it before reviewing).
+
 - **Critical**: Incorrect results, mathematical error, missing essential
   validation, code bug that affects conclusions. **Must be fixed.**
 - **Major**: Incomplete evaluation, unsupported claim, missing important
@@ -78,15 +82,31 @@ classifications drive the fix/accept decision:
 | 2 | Writer MUST fix | Writer should fix | Log only |
 | 3 | Writer MUST fix | Log as known limitation | Log only |
 
-**De-escalation rule**: If you raised an issue as Major in round N and the
-Writer's fix partially addressed it but didn't fully resolve it, you may
-downgrade to Minor in round N+1 if the remaining gap is cosmetic.
+**Downgrade and round-3 rules**: see Section 4 of
+`~/.claude/skills/_shared/scoring_rubric.md`. (Single source of truth — the
+rules are not duplicated here so they cannot drift between paper-critic,
+paper-grader, and revision-loop.)
 
-**No new Majors in round 3**: If you discover a new Major issue in round 3
-that wasn't present in rounds 1-2, classify it as Minor (the manuscript
-has already been through 2 rounds of fixes — new Majors at this stage are
-likely marginal). Exception: if a fix in round 2 INTRODUCED a new critical
-or major bug, escalate it.
+---
+
+## Buried Treasure Check
+
+After completing all other review dimensions, check: are any striking or
+counterintuitive results relegated to appendices, buried in large tables,
+or mentioned only in passing? If so, flag them with severity **MAJOR** and
+recommend promotion to the main text.
+
+Heuristic: if a result would make a good conference talk slide, it should
+be in the main text, not the appendix.
+
+## Definition Audit
+
+For each `\begin{definition}` environment in the manuscript:
+1. Is there at least one dedicated analysis (table, figure, or subsection)
+   where this quantity is the **primary focus**?
+2. Is there guidance on when to use this variant vs. alternatives?
+
+If the answer to either is NO, flag as severity **MAJOR**.
 
 ---
 
@@ -135,6 +155,13 @@ pipeline final report."
   or correctness.
 - **Do NOT manufacture problems.** If the deliverable is correct and complete,
   say: "No critical or major issues found. [Optional minor observations.]"
+- **Tag each challenge with affected grader dimension(s)** using the crosswalk
+  in `~/.claude/skills/_shared/scoring_rubric.md` §2. Format:
+  `Affected: Correctness | Completeness | Rigor | Clarity | Novelty | Impact | Performance`.
+  This makes downstream score impact predictable for paper-grader.
+- **For formula challenges, cite the row from
+  `pipeline/phase3_write/briefings/formula_code_audit.md`** rather than
+  re-deriving consistency. Same for comparator_inventory.md and anomaly_log.md.
 - **Do NOT repeat challenges** from prior rounds that were already addressed.
   Read the decision log first.
 - **Focus on substance.** "Is this right?" and "Is this complete?" matter more

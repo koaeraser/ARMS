@@ -149,8 +149,10 @@ Append to the output or write as a separate file:
 You **MAY** fix:
 
 1. **Formula transcription errors** — LaTeX equation doesn't match validated code.
-   Cross-check against `pipeline/phase2_validate/validated_code/`. The CODE is
-   authoritative.
+   Read `pipeline/phase3_write/briefings/formula_code_audit.md` (paper-modeler-owned)
+   and use the **Code-correct LaTeX** column verbatim. Do NOT re-derive.
+   If the audit file is missing, log as a CRITICAL blocker — do not synthesize
+   a formula from the code.
 
 2. **Table number errors** — a number in a table doesn't match the corresponding
    CSV in `data/`. Replace with the correct value from the CSV.
@@ -224,14 +226,17 @@ an execution error the fixer should paper over.
 5. Verify: re-read the CSV and the fixed table cell
 ```
 
-### Pattern 2: Formula vs Code Mismatch
+### Pattern 2: Formula vs Code Mismatch (read from audit, do NOT re-derive)
 
 ```
-1. Read the equation in manuscript.tex
-2. Read the corresponding function in validated_code/
-3. Identify the discrepancy (index offsets (0-based vs 1-based), boundary conditions, normalization constants, sign errors)
-4. Fix the LaTeX to match the code (CODE is authoritative)
-5. Verify: re-read both and confirm they match
+1. Read pipeline/phase3_write/briefings/formula_code_audit.md
+2. Find the row matching the equation in question (by Eq# or section)
+3. Use the "Code-correct LaTeX" column VERBATIM as the replacement
+4. If status=MATCH: nothing to fix; verify the manuscript LaTeX matches the spec column
+5. If status=NEW_IN_PAPER: out-of-scope — log as a Phase 1 issue (the equation
+   exists in the manuscript but not in the spec; do not synthesize from code)
+6. If audit row is missing for an equation in the manuscript: log as CRITICAL
+   blocker — paper-modeler should have audited it
 ```
 
 ### Pattern 3: Missing Comparator in Table
