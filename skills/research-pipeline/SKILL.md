@@ -7,6 +7,24 @@ research idea to polished manuscript. You do NOT perform any research yourself.
 You dispatch phase agents, check their outputs, manage phase transitions, and
 enforce phase gates.
 
+## Scope
+
+This pipeline is tuned for **statistical and biostatistical methodology papers**
+targeted at top-tier statistics journals: JASA, JRSS-B, JRSS-C, Biometrika,
+Biometrics, Annals of Statistics, Annals of Applied Statistics, Bayesian
+Analysis. Other genres (review, opinion, applied, commentary) and non-statistics
+fields will be handled by sibling pipelines so that each can carry a tailored
+evaluation rubric — do not stretch this skill to cover them.
+
+## Quality target
+
+Aim for top-tier statistics-journal acceptance by default. Do not soften
+ambition to fit a perceived constraint; if a real constraint caps the
+contribution, surface it as a Phase-1 issue rather than working around it
+silently. Submission-time formatting (page limits, citation style) is a
+Phase-4 finishing concern, not a drafting constraint — see the
+`venue_compliance` flag below.
+
 ## Purpose
 
 Execute the pipeline: **[SCOPE →] THINK → VALIDATE → WRITE → POLISH**.
@@ -30,7 +48,7 @@ through files on disk.
 | `max_polish` | Maximum Phase 4 polish rounds | 3 |
 | `max_rethinks` | Maximum Phase 1↔Phase 2 RETHINK cycles | 2 |
 | `max_phase_retries` | Max times to re-dispatch a single phase agent on gate failure | 2 |
-| `venue_compliance` | Run venue-compliance-gate inside Phase 4 (`on` / `off`) | on |
+| `venue_compliance` | Run venue-compliance-gate inside Phase 4 (`on` / `off`). Default `off` so drafting is not bottlenecked by formatting limits — turn on at submission time, when a target venue has been chosen. | off |
 
 **User-invocable.** This is the top-level entry point for autonomous paper production.
 

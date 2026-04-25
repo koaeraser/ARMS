@@ -25,17 +25,23 @@ Called by `write-manuscript` (Phase D: Writing). Not user-invocable.
 
 ---
 
-## Pedagogical Triage (before writing)
+## Motivating example (before writing)
 
-Before writing the Introduction or Results, scan all results (CSVs, tables,
-figures) and rate each finding's surprise level:
-- **EXPECTED**: A competent statistician would predict this before seeing the data.
-- **MILDLY SURPRISING**: Somewhat counterintuitive or larger in magnitude than expected.
-- **GENUINELY SURPRISING**: Most readers would not predict this.
+Before writing the Introduction, scan all results (CSVs, tables, figures) and
+choose a motivating example that is **thoughtful, novel, and sensible**:
+- **Thoughtful**: it reflects a non-obvious insight that the method enables —
+  not a trivial sanity check.
+- **Novel**: it is new relative to prior literature on the problem (named
+  comparators do not already report it, or report it differently).
+- **Sensible**: it makes substantive sense to a reader of the target venue,
+  ties to a real practitioner concern, and is presented concretely with
+  numbers.
 
-The Introduction's motivating example MUST be the most GENUINELY SURPRISING
-finding, presented concretely with numbers. If no finding is genuinely
-surprising, lead with the most practically useful finding instead.
+Surprise is welcome but not required. A quietly important finding — one that
+shifts how a practitioner would act, even if it confirms a hypothesis — is
+acceptable. Do not lead with a finding that is merely surprising-but-thin
+(novelty without substance), nor with one that is merely confirmatory of a
+well-known effect.
 
 ## Definition Development Rule
 
@@ -53,7 +59,7 @@ Definition. Mention it in a Remark instead.
 ## Investigative Budget
 
 You have a budget of up to 15% of your context window for unstructured
-exploration — following a surprising pattern in the results, working through
+exploration — following a non-obvious pattern in the results, working through
 a counterexample, asking "what if this finding is an artifact?" Document
 what you investigated in the decision log.
 
@@ -145,19 +151,22 @@ established competitor, not against the non-informative baseline.
 
 paper-modeler produces the canonical formula↔code audit at
 `pipeline/phase3_write/briefings/formula_code_audit.md`. For every equation
-you write, copy the **Code-correct LaTeX** column from the corresponding row.
+you write, copy the **Reconciled LaTeX** column from the corresponding row.
+The Reconciled LaTeX represents the intended object after paper-modeler
+investigated which side (formula or code) had the bug — it is not assumed to
+be the code-derived expression.
 
 Procedure:
 1. Read `formula_code_audit.md`. Locate the row for the equation you are writing
    (by Eq# or section).
-2. Use the **Code-correct LaTeX** column verbatim. Do NOT re-derive from the
+2. Use the **Reconciled LaTeX** column verbatim. Do NOT re-derive from the
    spec or the code yourself.
-3. If the audit row is MISMATCH and provides a code-correct expression, use it.
+3. If the audit row is MISMATCH and provides a reconciled expression, use it.
    If MATCH, the spec LaTeX and code are aligned — use either.
 4. **Blockers**:
    - If `formula_code_audit.md` does not exist → CRITICAL blocker.
-   - If the audit has any unresolved MISMATCH row without a code-correct LaTeX
-     value → CRITICAL blocker.
+   - If the audit has any unresolved MISMATCH row without a Reconciled LaTeX
+     value, or any UNRECONCILED row → CRITICAL blocker.
    - If you write a NEW equation not in the audit (NEW_IN_PAPER) → CRITICAL
      blocker (return to paper-modeler to re-audit).
 
@@ -385,5 +394,5 @@ Before finalizing any section:
 - If you need results that don't exist yet, note it as a blocker
 - Keep consistent notation with existing manuscript content
 - Compile with `pdflatex --draftmode` after writing to verify no LaTeX errors
-- The CODE is authoritative when equations and code disagree
+- When equations and code disagree, do not default to either side. Read paper-modeler's reconciliation in `formula_code_audit.md`. Either side may carry the bug; the Reconciled LaTeX column captures the intended object after investigation
 - Always activate the venv if you need to run any code: `source .venv/bin/activate`

@@ -168,12 +168,18 @@ Fill each section using evidence from Phases 0.2-0.4:
 3. **Domain Context**: Define terminology a non-specialist needs. Include evaluation
    conventions (e.g., "this field reports mean ± std over 5 seeds").
 
-4. **Target Venue**: If the user specified one, use it. Otherwise, select the best fit:
-   - Theory-heavy → JMLR, Annals of Statistics, COLT
-   - Theory + experiments → NeurIPS, ICML, ICLR
-   - Applied/systems → KDD, AAAI, ACL
-   - Domain-specific → field journals
-   Fill in format requirements by searching "[venue] submission guidelines 2026".
+4. **Target Venue**: If the user specified one, use it. Otherwise, select from the
+   default top-tier statistics-journal set by paper flavor:
+   - Theory-leaning methodology → Annals of Statistics, Biometrika, JRSS-B
+   - Methodology + serious empirical evaluation → JASA, Biometrics
+   - Data-driven applied work with methodological substance → JRSS-C,
+     Annals of Applied Statistics
+   - Bayesian-centered methodology → Bayesian Analysis, JASA, Biometrika
+   List 1-3 candidates; the architect / paper-grader will sharpen the
+   choice as methodology and evaluation crystallize.
+   **Format requirements are optional at this stage** — leave blank during
+   drafting and fill in only at submission time, when a single venue is locked.
+   The pipeline aims for top-tier quality regardless of formatting until then.
 
 5. **Success Criteria**: Ground in what the field considers meaningful. Use thresholds
    from recent papers (e.g., "prior work reports coverage ± 0.02, so our target is
@@ -192,8 +198,10 @@ Fill each section using evidence from Phases 0.2-0.4:
    - Production: enough for publishable precision (often 1000-5000 reps)
    - If the problem involves training ML models, budget wall-clock time too.
 
-9. **Scope and Non-Goals**: Explicitly exclude the most obvious scope-creep directions.
-   This is protective — the methodology architect will be tempted to expand.
+9. **Scope and Non-Goals**: Keep this section light. Aim for the highest-quality
+   contribution; do not pre-emptively narrow scope to fit a perceived constraint.
+   Leave non-goals blank unless there is a concrete reason to exclude a direction.
+   methodology-architect will surface real constraints during Phase 1.
 
 ### Phase 0.6: Self-Check (5 minutes)
 
@@ -204,13 +212,13 @@ Before writing the final brief, verify:
 [x] Problem statement with abstract formulation
 [x] At least one data source (real or synthetic with generation spec)
 [x] Domain terminology (≥5 terms defined)
-[x] Target venue with format requirements
+[x] Target venue (1-3 candidate journals; format requirements optional, fill at submission)
 [x] Primary metric with threshold
 [x] ≥4 comparator methods with citations
 [x] ≥3 adjacent fields
 [x] Computational budgets (3 tiers)
 [x] ≥3 stress test scenarios
-[x] ≥2 non-goals
+[ ] Non-goals (optional — leave blank unless a real constraint applies)
 ```
 
 **Consistency check** — cross-section coherence:

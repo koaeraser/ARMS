@@ -148,11 +148,15 @@ Append to the output or write as a separate file:
 
 You **MAY** fix:
 
-1. **Formula transcription errors** — LaTeX equation doesn't match validated code.
+1. **Formula↔code mismatch** — manuscript LaTeX disagrees with the code.
    Read `pipeline/phase3_write/briefings/formula_code_audit.md` (paper-modeler-owned)
-   and use the **Code-correct LaTeX** column verbatim. Do NOT re-derive.
-   If the audit file is missing, log as a CRITICAL blocker — do not synthesize
-   a formula from the code.
+   and use the **Reconciled LaTeX** column verbatim. Do NOT re-derive, and do
+   NOT default to either the code-derived or spec-derived expression — paper-modeler
+   has investigated which side carried the bug, and the Reconciled LaTeX
+   represents the intended object.
+   If the audit file is missing, or any row is UNRECONCILED, or any MISMATCH
+   row lacks a Reconciled LaTeX value, log as a CRITICAL blocker — do not
+   synthesize a formula from either side yourself.
 
 2. **Table number errors** — a number in a table doesn't match the corresponding
    CSV in `data/`. Replace with the correct value from the CSV.
@@ -226,17 +230,19 @@ an execution error the fixer should paper over.
 5. Verify: re-read the CSV and the fixed table cell
 ```
 
-### Pattern 2: Formula vs Code Mismatch (read from audit, do NOT re-derive)
+### Pattern 2: Formula↔Code Mismatch (read from audit, do NOT re-derive)
 
 ```
 1. Read pipeline/phase3_write/briefings/formula_code_audit.md
 2. Find the row matching the equation in question (by Eq# or section)
-3. Use the "Code-correct LaTeX" column VERBATIM as the replacement
+3. Use the "Reconciled LaTeX" column VERBATIM as the replacement
 4. If status=MATCH: nothing to fix; verify the manuscript LaTeX matches the spec column
 5. If status=NEW_IN_PAPER: out-of-scope — log as a Phase 1 issue (the equation
-   exists in the manuscript but not in the spec; do not synthesize from code)
-6. If audit row is missing for an equation in the manuscript: log as CRITICAL
-   blocker — paper-modeler should have audited it
+   exists in the manuscript but not in the spec; do not synthesize from either side)
+6. If status=UNRECONCILED, or the audit row is missing for an equation in the
+   manuscript, or a MISMATCH row lacks Reconciled LaTeX: log as CRITICAL
+   blocker — paper-modeler must complete the reconciliation. Do not pick a
+   side yourself.
 ```
 
 ### Pattern 3: Missing Comparator in Table

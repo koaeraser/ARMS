@@ -81,7 +81,13 @@ Write to `pipeline/phase2_validate/` directory:
 
 1. **If existing code implements the method**: import it, verify it matches the spec.
    Check every equation in the spec against the corresponding code. If there is a
-   discrepancy, the CODE is more likely correct than a freshly written implementation.
+   discrepancy, do NOT default to either side. Investigate intent: read the
+   spec derivation and the code, identify which side has the bug, and record
+   the discrepancy in `formula_audit_seed.md` with one or two lines of
+   evidence (where the bug is, why this side wins). Existing validated code
+   is *evidence* but not *proof* — buggy implementations can produce
+   plausible-looking results when the bug cancels in the tested regime.
+   paper-modeler will perform the canonical reconciliation in Phase 3.
 
 2. **If existing code partially implements it**: extend minimally. Write only the
    missing components. Keep the existing API surface.

@@ -411,7 +411,9 @@ citation issues, clarity problems. Do NOT list methodology or novelty issues.]
 
 ### Verdict
 [2-3 sentences: overall assessment and recommendation — accept/revise/reject
-at top-tier venue standards for the relevant domain]
+against top-tier statistics-journal standards (JASA, JRSS-B, JRSS-C,
+Biometrika, Biometrics, Annals of Statistics, Annals of Applied Statistics,
+Bayesian Analysis). Do not soften the bar.]
 ```
 
 ---
@@ -419,7 +421,10 @@ at top-tier venue standards for the relevant domain]
 ## Calibration Notes
 
 - Compare quality against the reference papers in `reference/`. These are
-  published papers from top venues and represent scores of 4-5 on most dimensions.
+  published papers from top-tier statistics venues (JASA, JRSS-B, JRSS-C,
+  Biometrika, Biometrics, Annals of Statistics, Annals of Applied Statistics,
+  Bayesian Analysis) and represent scores of 4-5 on most dimensions. Grade
+  the submission against this bar; do not soften it to fit the brief.
 - Scoring uses **weighted total /50** (not raw /35). Research Quality dimensions
   (Novelty, Impact, Performance) carry x2.0 weight to ensure the grader rewards
   genuine methodological contribution, not just polished execution.

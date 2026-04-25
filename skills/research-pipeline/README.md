@@ -1,6 +1,8 @@
 # Research Pipeline
 
-End-to-end orchestrator for autonomous Bayesian biostatistics paper production. Takes a research brief and drives 5 phases from problem statement to graded manuscript, dispatching specialist sub-skills at each stage and enforcing structural gates between them.
+End-to-end orchestrator for autonomous statistical / biostatistical methodology paper production, targeted at top-tier statistics journals (JASA, JRSS-B, JRSS-C, Biometrika, Biometrics, Annals of Statistics, Annals of Applied Statistics, Bayesian Analysis). Takes a research brief and drives 5 phases from problem statement to graded manuscript, dispatching specialist sub-skills at each stage and enforcing structural gates between them.
+
+> **Scope and future siblings.** This pipeline is tuned for **statistical / biostatistical methodology papers**. Other genres and fields will live in sibling pipelines so each can excel at its own evaluation criteria — planned siblings include `review-paper-pipeline`, `opinion-piece-pipeline`, `applied-stats-paper-pipeline`, `commentary-pipeline`, with later replication for non-statistics fields. Sub-skills (literature, writing, grading, fixing) are designed to be reusable across siblings; the per-genre pipelines configure them.
 
 For execution detail and prompt content see `SKILL.md`. For the brief format, see `research_brief_template.md`.
 

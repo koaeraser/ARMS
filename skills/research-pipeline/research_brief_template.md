@@ -61,28 +61,34 @@
 
 ## 4. Target Venue
 
-**Name**: <!-- e.g., Biometrics, NeurIPS, Journal of Econometrics -->
-
-### Format Requirements
-- **Document class / template**: <!-- e.g., biom.cls, neurips_2025.sty -->
-- **Page/word limit**: <!-- e.g., 20-30 pages double-spaced -->
-- **Citation style**: <!-- e.g., author-year, numbered -->
-- **Supplementary material**: <!-- Allowed? Required? Separate file? -->
+**Name**: <!-- Default candidate set: JASA, JRSS-B, JRSS-C, Biometrika,
+     Biometrics, Annals of Statistics, Annals of Applied Statistics,
+     Bayesian Analysis. Pick one or list 2-3 candidates; methodology and
+     evaluation drive the final choice. -->
 
 ### Audience
 <!-- Who reads this venue? What is their background? -->
 
 ### Quality Expectations
-<!-- Check all that apply and elaborate. -->
-- [ ] Rigorous theory (proofs, convergence guarantees)
-- [ ] Comprehensive empirical evaluation
-- [ ] Comparison to established baselines
-- [ ] Real-world application / case study
-- [ ] Reproducibility (code, data availability)
-- [ ] Clear practical value
+<!-- Default for top-tier statistics venues: aim high on all of the below.
+     Override only with explicit reason. -->
+- [x] Rigorous theory (proofs, convergence guarantees, identifiability)
+- [x] Comprehensive empirical evaluation (simulation + real data)
+- [x] Comparison to established baselines
+- [x] Reproducibility (code, data availability)
+- [x] Clear practical value to statisticians and applied users
+- [ ] Real-world application / case study (required for JRSS-C, AoAS,
+      Biometrics; optional for AoS, Biometrika)
 
-### Typical Structure
-<!-- e.g., Introduction, Related Work, Method, Theory, Experiments, Discussion -->
+### Format Requirements (optional — fill at submission time)
+<!-- Leave blank during drafting. Fill in only when you've chosen a specific
+     submission target and are ready to format. The pipeline aims for
+     top-tier journal quality regardless of formatting until ready to
+     submit. Run with `venue_compliance=on` once these are filled. -->
+- **Document class / template**: <!-- e.g., jasa.cls, biomka.cls -->
+- **Page/word limit**: <!-- e.g., 30 pages main text -->
+- **Citation style**: <!-- e.g., author-year -->
+- **Supplementary material**: <!-- Allowed? Required? Separate file? -->
 
 ## 5. Success Criteria
 
@@ -162,16 +168,20 @@
 
 ## 9. Scope and Non-Goals
 
-### What the Paper Should NOT Try to Do
-<!-- Prevents scope creep. e.g., "Do not attempt causal inference."
-     e.g., "Do not extend to time-to-event outcomes." -->
+<!-- This section is intentionally light. Aim for the highest-quality
+     contribution; do not pre-emptively narrow scope to fit a perceived
+     constraint. If a constraint genuinely caps the contribution,
+     methodology-architect will surface it during Phase 1. -->
 
 ### Known Limitations to Acknowledge
-<!-- Limitations to state upfront, not fix. e.g., "Assumes exchangeability." -->
+<!-- Real, structural limitations to state upfront in the paper rather than
+     try to fix. e.g., "Assumes exchangeability of historical trials." -->
 
-### Methods or Approaches Out of Scope
-<!-- e.g., "Deep learning — dataset too small."
-     e.g., "Bayesian nonparametrics — too complex for target audience." -->
+### Out-of-Scope (only if truly necessary)
+<!-- Leave blank unless there is a concrete reason to exclude a direction.
+     A blank list is better than a defensive one. -->
+<!-- e.g., "Time-to-event extension — orthogonal modeling effort, separate
+     paper." -->
 
 ## 10. Reference Papers
 

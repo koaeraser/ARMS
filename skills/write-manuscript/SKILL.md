@@ -290,10 +290,11 @@ Invoke paper-writer (Task agent) with:
   - Write the full Methods section with all mathematical details
   - Include all propositions and proofs from the methodology spec
   - For every equation, READ pipeline/phase3_write/briefings/formula_code_audit.md
-    and copy the 'Code-correct LaTeX' column verbatim. Do NOT re-derive
-    consistency from spec/code yourself — paper-modeler is the audit owner.
-    If the audit is missing or has unresolved MISMATCH rows, return as a
-    CRITICAL blocker.
+    and copy the 'Reconciled LaTeX' column verbatim. Do NOT re-derive
+    consistency from spec/code yourself — paper-modeler is the audit owner
+    and has investigated which side carried the bug for each MISMATCH.
+    If the audit is missing, has unresolved MISMATCH rows, or has any
+    UNRECONCILED rows, return as a CRITICAL blocker.
   - Define all notation and macros used throughout the paper"
 ```
 
