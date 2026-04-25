@@ -25,6 +25,46 @@ Called by `write-manuscript` (Phase D: Writing). Not user-invocable.
 
 ---
 
+## Motivating example (before writing)
+
+Before writing the Introduction, scan all results (CSVs, tables, figures) and
+choose a motivating example that is **thoughtful, novel, and sensible**:
+- **Thoughtful**: it reflects a non-obvious insight that the method enables —
+  not a trivial sanity check.
+- **Novel**: it is new relative to prior literature on the problem (named
+  comparators do not already report it, or report it differently).
+- **Sensible**: it makes substantive sense to a reader of the target venue,
+  ties to a real practitioner concern, and is presented concretely with
+  numbers.
+
+Surprise is welcome but not required. A quietly important finding — one that
+shifts how a practitioner would act, even if it confirms a hypothesis — is
+acceptable. Do not lead with a finding that is merely surprising-but-thin
+(novelty without substance), nor with one that is merely confirmatory of a
+well-known effect.
+
+## Definition Development Rule
+
+Every quantity that receives a formal Definition environment in the manuscript
+MUST receive proportional analytical treatment:
+- At least one experiment or analysis where it is the primary focus (not just
+  a column in someone else's table)
+- A discussion of when it should be preferred over alternatives
+- If two variants are defined (e.g., IF and IF-O), at least one comparison
+  showing when they diverge and which is preferable
+
+If a quantity does not merit this treatment, do not give it a formal
+Definition. Mention it in a Remark instead.
+
+## Investigative Budget
+
+You have a budget of up to 15% of your context window for unstructured
+exploration — following a non-obvious pattern in the results, working through
+a counterexample, asking "what if this finding is an artifact?" Document
+what you investigated in the decision log.
+
+---
+
 ## Working Style
 
 1. **Read existing manuscript first.** Always read the current `.tex` file to
@@ -107,22 +147,28 @@ established competitor, not against the non-informative baseline.
 3. Special cases and connections to prior work
 4. Computational details
 
-### Formula-Code Consistency Check (MANDATORY for Methods section)
+### Formula-Code Consistency (read from canonical audit, do NOT re-derive)
 
-After writing ANY equation in the Methods or Theoretical Properties section,
-verify it against the corresponding code implementation:
+paper-modeler produces the canonical formula↔code audit at
+`pipeline/phase3_write/briefings/formula_code_audit.md`. For every equation
+you write, copy the **Reconciled LaTeX** column from the corresponding row.
+The Reconciled LaTeX represents the intended object after paper-modeler
+investigated which side (formula or code) had the bug — it is not assumed to
+be the code-derived expression.
 
-1. **Read the code**: For each equation, identify the function that
-   implements it in the validated code. Read the actual code, not just comments.
-2. **Compare term-by-term**: Verify that every mathematical operation in the
-   LaTeX equation matches the code exactly. Pay special attention to:
-   - Index offsets (0-based vs 1-based)
-   - Boundary conditions (e.g., floored at 0 vs floored at some other value)
-   - Normalization constants (e.g., 1/n vs 1/(n-1), missing scale factors)
-   - Parameter ordering (e.g., shape/rate vs shape/scale conventions)
-3. **Report any discrepancy**: If the equation and code disagree, the CODE
-   is authoritative (it produced the results). Correct the equation to match
-   the code. If the code seems wrong, flag it as a CRITICAL blocker.
+Procedure:
+1. Read `formula_code_audit.md`. Locate the row for the equation you are writing
+   (by Eq# or section).
+2. Use the **Reconciled LaTeX** column verbatim. Do NOT re-derive from the
+   spec or the code yourself.
+3. If the audit row is MISMATCH and provides a reconciled expression, use it.
+   If MATCH, the spec LaTeX and code are aligned — use either.
+4. **Blockers**:
+   - If `formula_code_audit.md` does not exist → CRITICAL blocker.
+   - If the audit has any unresolved MISMATCH row without a Reconciled LaTeX
+     value, or any UNRECONCILED row → CRITICAL blocker.
+   - If you write a NEW equation not in the audit (NEW_IN_PAPER) → CRITICAL
+     blocker (return to paper-modeler to re-audit).
 
 ### Theoretical Properties (if applicable for the domain)
 
@@ -169,51 +215,45 @@ Structure it as follows (5 focused topics, not 7+):
 
 ---
 
-## Anomaly Detection and Honest Interpretation Protocol (MANDATORY)
+## Anomaly Interpretation Protocol (MANDATORY — read canonical log)
 
-**Before finalizing the Discussion section**, complete this anomaly scan.
-The grader penalizes Rigor for unexplained anomalies and uninterpreted
-null-like findings.
+**Before finalizing the Discussion section**, read the canonical anomaly
+catalog: `pipeline/phase3_write/briefings/anomaly_log.md` (paper-modeler-owned).
+Do NOT re-scan CSVs for anomalies — paper-modeler has already done this and
+the audit is canonical. Your job is **interpretation**.
 
-### Step 1: Scan Results Tables for Anomalies
+### Step 1: Read anomaly_log.md
 
-Read every results table. For each table, check:
-1. **Performance reversals**: Any cell where the proposed method performs
-   SUBSTANTIALLY worse than a baseline? (>10% relative difference)
-2. **Identical metrics across methods**: Rows where ALL methods produce the
-   exact same number? (informative prior has zero differential impact)
-3. **Non-monotonic patterns**: Any metric that behaves surprisingly across
-   a sweep parameter?
+Extract every anomaly with Type 1 (performance reversal), Type 2 (identical
+metric), or Type 3 (non-monotonicity). Type 4–5 (zero-impact, excessive MC
+noise) are optional but recommended.
 
-### Step 2: Explain Every Anomaly in the Discussion
+### Step 2: Discussion paragraph per Type 1–3 anomaly
 
-For each anomaly:
-- **What** (state explicitly with exact numbers)
+For each Type 1–3 anomaly, write a Discussion paragraph that **references
+its ID** and covers:
+- **What** (state explicitly with exact numbers from the log)
 - **Why** (mechanistic explanation with data, not speculation)
 - **When** it resolves (at what sample size or parameter setting)
 - **What it means for practitioners**
 
-### Step 3: Address Zero-Impact Scenarios
-
-If the method and baseline produce identical results in some scenarios, the
-Discussion MUST acknowledge it and explain where the method's value lies instead.
-
-### Step 4: Include Counterfactual Reasoning
+### Step 3: Counterfactual Reasoning
 
 When conservative hyperparameters are used, compare quantitatively to what
 would happen under aggressive settings. This demonstrates that conservatism
 is principled, not arbitrary.
 
-### Step 5: Record Anomaly Scan in Output
+### Step 4: Record Anomaly Coverage in Output
 
 ```
-## Anomaly Scan
-- Tables scanned: [N]
-- Anomalies found: [N]
-- Performance reversals: [list]
-- Zero-impact scenarios: [list]
-- All anomalies explained in Discussion: YES/NO
+## Anomaly Coverage
+- Anomalies in log (Type 1–3): [N]
+- Discussion references by ID: [N]
+- Coverage: [N/N]
+- Missing references (BLOCKER if non-zero): [list of IDs]
 ```
+
+If `anomaly_log.md` does not exist → CRITICAL blocker (return to paper-modeler).
 
 ---
 
@@ -286,11 +326,15 @@ If a CSV file does not exist for a particular analysis, report it as a
 
 ---
 
-## Comparator Completeness Gate
+## Comparator Completeness Gate (read inventory)
 
-Before finalizing ANY results table, verify that ALL comparator methods listed
-in the research brief appear in the table. If a comparator's results are not
-in the data CSVs, report as a **CRITICAL blocker**.
+Before finalizing ANY results table, read
+`pipeline/phase2_validate/comparator_inventory.md` (validate-method-owned).
+Every comparator with status=FULL must appear in the table.
+
+If a FULL comparator is absent from the data CSVs, report as a **CRITICAL
+blocker** — this means paper-modeler dropped one. Do NOT re-derive the comparator
+list from the brief; the inventory is authoritative.
 
 ---
 
@@ -350,5 +394,5 @@ Before finalizing any section:
 - If you need results that don't exist yet, note it as a blocker
 - Keep consistent notation with existing manuscript content
 - Compile with `pdflatex --draftmode` after writing to verify no LaTeX errors
-- The CODE is authoritative when equations and code disagree
+- When equations and code disagree, do not default to either side. Read paper-modeler's reconciliation in `formula_code_audit.md`. Either side may carry the bug; the Reconciled LaTeX column captures the intended object after investigation
 - Always activate the venv if you need to run any code: `source .venv/bin/activate`

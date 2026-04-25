@@ -31,6 +31,10 @@ Read and assess:
 5. Reference papers in `reference/` (as quality benchmarks)
 6. Validated code: `pipeline/phase2_validate/validated_code/`
 7. Validation report: `pipeline/phase2_validate/validation_report.md`
+8. **Canonical artifacts** (do NOT re-derive — verify they exist and are complete):
+   - `pipeline/phase3_write/briefings/formula_code_audit.md` (paper-modeler)
+   - `pipeline/phase3_write/briefings/anomaly_log.md` (paper-modeler)
+   - `pipeline/phase2_validate/comparator_inventory.md` (validate-method)
 
 ---
 
@@ -198,30 +202,28 @@ You do NOT modify any files. You produce a structured audit report.
 
 ## Audit Checklist
 
-### Category 1: Formula Correctness
+### Category 1: Formula Correctness (verify the canonical audit)
 
-For each metric computed in the code, verify the formula matches the label.
-Report PASS / FLAG / FAIL for each.
+paper-modeler is the single source of formula↔code truth via
+`pipeline/phase3_write/briefings/formula_code_audit.md`. Your job here is to
+**verify the audit happened**, not to redo it.
 
-1. **Key metric computations**: Verify that primary evaluation metrics are
-   computed according to their standard definitions.
-   - FAIL if: metric label does not match its actual computation
-   - Search for: variables or functions producing each reported metric
-   - Check: does the computation match the mathematical definition?
+1. **Audit existence and completeness**:
+   - FAIL if: `formula_code_audit.md` is missing.
+   - FAIL if: any audit row has status MISMATCH without a populated
+     "Code-correct LaTeX" column.
+   - FAIL if: an equation appears in the manuscript but does not appear as a
+     row in the audit file (NEW_IN_PAPER).
+   - FLAG if: an audit row is marked MATCH but the manuscript LaTeX visibly
+     diverges from both the spec and the code.
+   - PASS if: every manuscript equation maps to an audit row with status
+     MATCH or MISMATCH-with-code-correct-LaTeX, and the manuscript shows the
+     code-correct version.
 
-2. **Evaluation metrics**: Verify that all reported evaluation metrics use
-   correct formulas.
-   - FAIL if: aggregation order is wrong (e.g., mean of sqrt vs sqrt of mean)
-   - FLAG if: uncertainty on metrics is missing or uses wrong formula
-
-3. **Derived quantities**: Verify that any derived quantities (ratios,
-   percentages, differences) use correct formulas.
-   - FAIL if: numerator/denominator are swapped or wrong baseline is used
-   - FLAG if: percentage computed from wrong reference quantity
-
-4. **Decision rules**: Check that any threshold-based decisions use consistent
-   thresholds and correct probability directions throughout.
-   - FAIL if: threshold or direction is inconsistent across the codebase
+2. **Spot-check (2 equations)**:
+   - Pick 2 equations from the manuscript, find their audit rows, and confirm
+     the manuscript LaTeX matches the "Code-correct LaTeX" column.
+   - FAIL if either spot-check disagrees.
 
 ### Category 2: Parameter Consistency
 
@@ -249,8 +251,12 @@ Cross-reference parameter values across the code and manuscript.
 
 ### Category 3: Methodological Completeness
 
-10. **Comparator presence**: List all methods that appear in each evaluation.
-    - FLAG if: a method appears in some tables but not others without explanation
+10. **Comparator presence (read inventory, do NOT re-derive)**:
+    - Read `pipeline/phase2_validate/comparator_inventory.md`.
+    - PASS if: every ID with status=FULL appears in every results table in the manuscript.
+    - FAIL if: `comparator_inventory.md` is missing.
+    - FLAG if: any FULL ID drops from any table without a documented rationale
+      in the inventory or manuscript.
 
 11. **Evaluation completeness**:
     - FLAG if: evaluation covers only a single scenario or parameter setting
@@ -259,6 +265,12 @@ Cross-reference parameter values across the code and manuscript.
 12. **Diagnostic reporting**:
     - FLAG if: relevant diagnostics for the methodology are missing
     - PASS if: appropriate diagnostics are computed and reported
+
+12b. **Anomaly coverage (read canonical log, do NOT re-detect)**:
+    - Read `pipeline/phase3_write/briefings/anomaly_log.md`.
+    - PASS if: every Type 1–3 anomaly is referenced in the Discussion section by ID.
+    - FAIL if: `anomaly_log.md` is missing.
+    - FLAG per unreferenced Type 1–3 anomaly.
 
 13. **RNG independence across evaluations**:
     - FLAG if: RNG stream is shared across scenarios
@@ -293,6 +305,26 @@ End with:
 """)
 ```
 
+### "So What?" Test
+
+After scoring all dimensions, answer this question in 2-3 sentences:
+
+> "If I read this paper at a conference, would I remember it a week
+> later? What specifically would stick with me?"
+
+If the answer is "nothing specific," note this as a qualitative observation
+in the grade report. This is already captured in Novelty and Impact scores,
+but naming it explicitly helps the fixer and the human authors.
+
+### Definition Audit
+
+For each `\begin{definition}` environment in the manuscript:
+1. Is there at least one dedicated analysis where this quantity is the
+   **primary focus** (not just a column in another table)?
+2. Is there guidance on when to prefer this variant vs. alternatives?
+
+If NO to either, note in the Completeness or Clarity justification.
+
 ### Incorporate Audit Results into Scoring
 
 After the Code Auditor returns its report:
@@ -302,12 +334,17 @@ After the Code Auditor returns its report:
 
 | Audit finding | Affected dimension | Score adjustment |
 |---|---|---|
-| Formula error (Cat 1 FAIL) | Correctness | -1 to -2 |
+| Formula audit missing (Cat 1 FAIL) | Correctness | -2 |
+| Unresolved MISMATCH or NEW_IN_PAPER (Cat 1 FAIL) | Correctness | -1 to -2 each |
+| Manuscript diverges from "Code-correct LaTeX" (Cat 1 FLAG) | Correctness | -0.5 each |
 | Parameter inconsistency (Cat 2 FAIL) | Correctness | -1 |
 | Seed non-reproducibility (Cat 2 FLAG) | Rigor | -0.5 |
-| Missing comparator (Cat 3 FLAG) | Completeness | -0.5 to -1 |
+| Comparator inventory missing (Cat 3 #10 FAIL) | Completeness | -1 |
+| Missing comparator from table (Cat 3 #10 FLAG) | Completeness | -0.5 to -1 each |
 | Incomplete evaluation (Cat 3 FLAG) | Completeness | -0.5 |
 | Missing diagnostics (Cat 3 FLAG) | Rigor | -0.5 |
+| Anomaly log missing (Cat 3 #12b FAIL) | Rigor | -1 |
+| Unreferenced Type 1–3 anomaly (Cat 3 #12b FLAG) | Rigor | -0.5 each, capped at -1 |
 
 3. Note the audit findings in the relevant dimension justifications.
 
@@ -374,7 +411,9 @@ citation issues, clarity problems. Do NOT list methodology or novelty issues.]
 
 ### Verdict
 [2-3 sentences: overall assessment and recommendation — accept/revise/reject
-at top-tier venue standards for the relevant domain]
+against top-tier statistics-journal standards (JASA, JRSS-B, JRSS-C,
+Biometrika, Biometrics, Annals of Statistics, Annals of Applied Statistics,
+Bayesian Analysis). Do not soften the bar.]
 ```
 
 ---
@@ -382,7 +421,10 @@ at top-tier venue standards for the relevant domain]
 ## Calibration Notes
 
 - Compare quality against the reference papers in `reference/`. These are
-  published papers from top venues and represent scores of 4-5 on most dimensions.
+  published papers from top-tier statistics venues (JASA, JRSS-B, JRSS-C,
+  Biometrika, Biometrics, Annals of Statistics, Annals of Applied Statistics,
+  Bayesian Analysis) and represent scores of 4-5 on most dimensions. Grade
+  the submission against this bar; do not soften it to fit the brief.
 - Scoring uses **weighted total /50** (not raw /35). Research Quality dimensions
   (Novelty, Impact, Performance) carry x2.0 weight to ensure the grader rewards
   genuine methodological contribution, not just polished execution.
@@ -398,6 +440,32 @@ at top-tier venue standards for the relevant domain]
 - **Performance dimension**: Score based on empirical results. If no quantitative
   evaluation with known ground truth is present, cap Performance at 2. If
   appropriate uncertainty quantification is not reported, cap Performance at 3.
+- **Single source of truth for shared artifacts**: Formula correctness comes
+  from `formula_code_audit.md` (paper-modeler-owned), comparator coverage from
+  `comparator_inventory.md` (validate-method-owned), anomaly coverage from
+  `anomaly_log.md` (paper-modeler-owned). The grader VERIFIES these audits
+  happened and applies score adjustments per the table above; the grader
+  does NOT redo the underlying analyses.
+
+## Shared Rubric Reference
+
+The 7-dimension rubric defined above is canonical. The mapping FROM
+`paper-critic` severities and `revision-loop` compliance statuses INTO score
+adjustments is maintained at:
+
+`~/.claude/skills/_shared/scoring_rubric.md`
+
+When grading a manuscript that has been through paper-critic or revision-loop,
+READ that file and apply the documented score adjustments consistently.
+Sections to consult:
+- §2 — paper-critic severity → grader dimension crosswalk
+- §3 — revision-loop compliance status → grader dimension crosswalk
+- §4 — Downgrade rule (round-3 reclassification)
+- §7 — Single source of truth for `formula_code_audit.md`,
+  `comparator_inventory.md`, `anomaly_log.md`
+- §8 — Research-quality dimensions are Phase 1–2 properties (cap revision-loop's reach)
+
+---
 
 ## Context Management
 

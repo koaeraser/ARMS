@@ -132,7 +132,7 @@ related work section should cover.
 Invoke literature-lead (Task agent) with:
   prompt: "[Full content of .claude/skills/literature-lead/SKILL.md]
 
-  ## Purpose: Writing-Focused Review
+  ## Purpose: Writing-Focused Review (INCREMENTAL — reuse Phase 1 work)
   This literature review is for POSITIONING the paper, not for designing
   the method (that's already done in Phase 1). Focus on:
   - How to frame our contribution vs existing work
@@ -140,6 +140,14 @@ Invoke literature-lead (Task agent) with:
   - What the Related Work section should cover
   - Quality benchmarks from reference papers (section count, table count,
     theorem count, evaluation types)
+
+  ## Phase 1 Literature Briefing (REUSE — do NOT re-derive)
+  Read FIRST: pipeline/phase1_think/briefings/literature_briefing.md
+  Read also: pipeline/phase1_think/briefings/method_lit_*.md (per-paper extractions)
+  Your task is INCREMENTAL: fill the Coverage Gaps explicitly listed by the
+  architect, and add positioning-specific extractions on top of what already
+  exists. Do not re-dispatch deep readers for papers the architect has
+  already covered.
 
   ## Research Brief
   Read: [path to research_brief.md]
@@ -211,8 +219,13 @@ Invoke paper-modeler (Task agent) with:
   - Production data CSVs: pipeline/phase3_write/data/
   - Publication figures (PDF): pipeline/phase3_write/figures/
   - Modeling briefing: pipeline/phase3_write/briefings/modeling_briefing.md
-    (Include: formula verification results, list of evaluations run,
-    any anomalies or warnings, comparator coverage confirmation)
+    (Include: list of evaluations run, comparator coverage confirmation)
+  - **Canonical formula↔code audit** (single source of truth for downstream skills):
+    pipeline/phase3_write/briefings/formula_code_audit.md
+  - **Canonical anomaly log** (single source of truth for downstream skills):
+    pipeline/phase3_write/briefings/anomaly_log.md
+  - Read pipeline/phase2_validate/comparator_inventory.md and verify every
+    FULL ID appears in every production CSV.
 
   ## Constraints
   - Do NOT change the methodology or algorithm
@@ -230,8 +243,9 @@ After the Modeler completes:
 - [ ] `pipeline/phase3_write/data/` contains result CSVs
 - [ ] `pipeline/phase3_write/figures/` contains at least 2 PDF figures
 - [ ] `pipeline/phase3_write/briefings/modeling_briefing.md` exists
-- [ ] All comparators are present in result CSVs (spot-check 2 files)
-- [ ] Formula-code consistency check reported PASS
+- [ ] `pipeline/phase3_write/briefings/formula_code_audit.md` exists with ZERO unresolved MISMATCH rows
+- [ ] `pipeline/phase3_write/briefings/anomaly_log.md` exists
+- [ ] `pipeline/phase2_validate/comparator_inventory.md` gate=COMPLETE (or CONDITIONAL with documented rationale); every FULL ID present in EVERY CSV under `pipeline/phase3_write/data/`
 - [ ] Evaluation with known ground truth is present in result CSVs
 - [ ] MC standard errors reported for all Monte Carlo estimates
 - [ ] No MC-SE exceeds 50% of the corresponding effect size
@@ -275,9 +289,12 @@ Invoke paper-writer (Task agent) with:
   ## Specific Instructions
   - Write the full Methods section with all mathematical details
   - Include all propositions and proofs from the methodology spec
-  - Run the formula-code consistency check (MANDATORY):
-    For every equation, read the corresponding code in
-    pipeline/phase2_validate/validated_code/ and verify they match
+  - For every equation, READ pipeline/phase3_write/briefings/formula_code_audit.md
+    and copy the 'Reconciled LaTeX' column verbatim. Do NOT re-derive
+    consistency from spec/code yourself — paper-modeler is the audit owner
+    and has investigated which side carried the bug for each MISMATCH.
+    If the audit is missing, has unresolved MISMATCH rows, or has any
+    UNRECONCILED rows, return as a CRITICAL blocker.
   - Define all notation and macros used throughout the paper"
 ```
 
@@ -327,7 +344,9 @@ Invoke paper-writer (Task agent) with:
 
   ## Specific Instructions
   - Create one table per evaluation type
-  - Include ALL comparators in ALL tables (comparator non-negotiability rule)
+  - Read pipeline/phase2_validate/comparator_inventory.md; every FULL ID
+    must appear in EVERY results table (do NOT re-derive comparator list
+    from the brief — the inventory is authoritative)
   - Highlight where the method wins AND where it ties or loses
   - Reference all figures with proper captions and labels
   - Follow table placement policy (main text vs supplementary)
@@ -351,7 +370,9 @@ Invoke paper-writer (Task agent) with:
   - Research brief: [path]
 
   ## Specific Instructions
-  - Run the anomaly detection protocol (MANDATORY) before writing Discussion
+  - Read pipeline/phase3_write/briefings/anomaly_log.md (paper-modeler-owned).
+    For every Type 1–3 anomaly, write a Discussion paragraph that REFERENCES
+    THE ANOMALY ID and covers WHAT/WHY/WHEN/MEANING. Do NOT re-detect anomalies.
   - Run the claim-vs-data verification protocol (MANDATORY)
   - Discussion should cover 5 focused topics:
     1. Method performance and robustness tradeoff
@@ -371,6 +392,22 @@ Invoke paper-writer (Task agent) with:
 1. Verify the section was written (read manuscript.tex, check line count)
 2. Check for LaTeX compilation: `pdflatex --draftmode pipeline/phase3_write/manuscript.tex`
 3. Log in `decision_log.md`
+
+---
+
+## Spec Fidelity Check (before critique)
+
+Before dispatching the critic, read `pipeline/phase1_think/methodology_specification.md`,
+section "Minimum Viable Evaluation." For each experiment listed:
+1. Is it present in the manuscript?
+2. Does the manuscript version match the spec's description?
+   (Same setup, same comparators, same analysis type)
+3. If the manuscript version DEVIATES from the spec, document the deviation
+   and justification in `decision_log.md`.
+
+Deviations without justification are FORBIDDEN. If you cannot execute the spec
+(e.g., data not available), log the reason and propose an alternative — do not
+silently substitute.
 
 ---
 
@@ -457,11 +494,13 @@ Verify each mandate against the manuscript. For any failure:
 - [ ] `references.bib` exists with at least 10 entries
 - [ ] `data/` contains production evaluation CSVs
 - [ ] All figures referenced in text exist on disk
-- [ ] All tables have all comparators from the brief
+- [ ] All tables include every FULL ID from `comparator_inventory.md`
 - [ ] All bibliography entries are referenced in text
 - [ ] LaTeX compiles without errors
 - [ ] Evaluation CSVs with known ground truth exist in `data/`
 - [ ] MC standard errors present in all Monte Carlo result CSVs
+- [ ] `formula_code_audit.md` exists with zero unresolved MISMATCH rows
+- [ ] `anomaly_log.md` exists; every Type 1–3 anomaly referenced in Discussion
 
 ### F.4 Write Final Decision Log
 

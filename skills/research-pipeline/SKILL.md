@@ -7,6 +7,24 @@ research idea to polished manuscript. You do NOT perform any research yourself.
 You dispatch phase agents, check their outputs, manage phase transitions, and
 enforce phase gates.
 
+## Scope
+
+This pipeline is tuned for **statistical and biostatistical methodology papers**
+targeted at top-tier statistics journals: JASA, JRSS-B, JRSS-C, Biometrika,
+Biometrics, Annals of Statistics, Annals of Applied Statistics, Bayesian
+Analysis. Other genres (review, opinion, applied, commentary) and non-statistics
+fields will be handled by sibling pipelines so that each can carry a tailored
+evaluation rubric — do not stretch this skill to cover them.
+
+## Quality target
+
+Aim for top-tier statistics-journal acceptance by default. Do not soften
+ambition to fit a perceived constraint; if a real constraint caps the
+contribution, surface it as a Phase-1 issue rather than working around it
+silently. Submission-time formatting (page limits, citation style) is a
+Phase-4 finishing concern, not a drafting constraint — see the
+`venue_compliance` flag below.
+
 ## Purpose
 
 Execute the pipeline: **[SCOPE →] THINK → VALIDATE → WRITE → POLISH**.
@@ -28,6 +46,9 @@ through files on disk.
 | `research_brief.md` | Problem statement (what to solve, NOT how to solve it) | Required |
 | `target` | Target paper-grader weighted score for Phase 4 exit | 42 |
 | `max_polish` | Maximum Phase 4 polish rounds | 3 |
+| `max_rethinks` | Maximum Phase 1↔Phase 2 RETHINK cycles | 2 |
+| `max_phase_retries` | Max times to re-dispatch a single phase agent on gate failure | 2 |
+| `venue_compliance` | Run venue-compliance-gate inside Phase 4 (`on` / `off`). Default `off` so drafting is not bottlenecked by formatting limits — turn on at submission time, when a target venue has been chosen. | off |
 
 **User-invocable.** This is the top-level entry point for autonomous paper production.
 
@@ -102,14 +123,21 @@ Create `pipeline/` in the project root. Each phase writes to its own subdirector
 
 ```
 pipeline/
+├── phase0_scope/
+│   ├── scope_log.md
+│   └── sparseness_check.md
 ├── phase1_think/
 │   ├── methodology_specification.md
 │   ├── methodology_rationale.md
+│   ├── brief_audit.md                    ← contract from brief items to method elements
 │   └── briefings/
-│       └── literature_briefing.md
+│       └── literature_briefing.md        ← Phase 1→Phase 3 bridge (architect-produced synthesis)
 ├── phase2_validate/
 │   ├── validation_report.md
 │   ├── iteration_log.md
+│   ├── comparator_inventory.md           ← brief-promised vs implemented comparators (single source)
+│   ├── failure_diagnosis.md              ← (only on NO-GO; produced by failure-diagnoser)
+│   ├── formula_audit_seed.md             ← (optional; spec↔code discrepancies for paper-modeler reuse)
 │   ├── validated_code/
 │   │   ├── method.py
 │   │   ├── comparator.py
@@ -124,18 +152,25 @@ pipeline/
 │   ├── references.bib
 │   ├── figures/
 │   ├── data/
+│   ├── briefings/
+│   │   ├── formula_code_audit.md         ← canonical formula↔code audit (paper-modeler-owned)
+│   │   ├── anomaly_log.md                ← canonical anomaly catalog (paper-modeler-owned)
+│   │   └── literature_briefing.md        ← Phase 3 positioning briefing (literature-lead-produced)
 │   └── decision_log.md
 ├── phase4_polish/
 │   ├── round_1/
 │   │   ├── manuscript.tex
-│   │   └── paper_grade.md
+│   │   ├── paper_grade.md
+│   │   ├── consistency_report.md         ← consistency-auditor verdict
+│   │   └── venue_compliance.md           ← (if venue_compliance=on)
 │   ├── round_2/
 │   │   └── ...
 │   └── round_N/
 │       └── ...
-├── pipeline_log.md          (append-only master log)
-├── pipeline_state.md        (resumable checkpoint)
-└── final_report.md          (written at pipeline completion)
+├── MARGINAL_decision_required.md         ← (only on Phase 2 MARGINAL; user fills Decision)
+├── pipeline_log.md                       (append-only master log)
+├── pipeline_state.md                     (resumable checkpoint)
+└── final_report.md                       (written at pipeline completion)
 ```
 
 ---
@@ -144,29 +179,58 @@ pipeline/
 
 Before starting any work:
 
-1. Check if `pipeline/pipeline_state.md` exists
-2. If YES: read it, determine the last completed phase, resume from the next phase.
+1. Check if `pipeline/pipeline_state.md` exists.
+2. **If YES and parseable** (has all required keys: phase, status, retry counters, polish_round):
+   read it, determine the last completed phase, resume from the next phase.
    Do NOT redo completed phases.
-3. If NO: start fresh. Proceed to the Brief Completeness Check.
+3. **If YES but corrupt/unparseable, OR if `pipeline/` exists but `pipeline_state.md` does not**:
+   enter **state recovery mode**.
+   a. Scan filesystem for phase artifacts (deterministic from §Working Directory layout):
+      - `phase0_scope/scope_log.md` → Phase 0 complete
+      - `phase1_think/methodology_specification.md` AND `brief_audit.md` → Phase 1 complete
+      - `phase2_validate/validation_report.md` (with parseable Verdict line) → Phase 2 complete
+      - `phase3_write/manuscript.tex` (>500 lines) AND `data/*.csv` → Phase 3 complete
+      - Highest `phase4_polish/round_N/paper_grade.md` → Phase 4 progress = N
+   b. Re-derive `pipeline_state.md` from observed artifacts. Set:
+      - `rethink_count` = count of "RETHINK" entries in `pipeline_log.md` (or 0)
+      - `phase{1,3}_retries` = same logic from log, default 0
+      - `polish_round` = max N found under `phase4_polish/`
+   c. Write the recovered state file and append a recovery note to
+      `pipeline_log.md`: `## State Recovery [timestamp]: rebuilt from filesystem.`
+   d. Resume from the next phase after the highest completed phase.
+4. **If NO and `pipeline/` does not exist**: start fresh. Proceed to the Brief Completeness Check.
 
 ---
 
 ## Phase 0: SCOPE (auto-triggered if brief is sparse)
 
-### Brief Completeness Check
+### Brief Completeness Check (deterministic)
 
-Read the input file and check whether it contains at least 5 of these 9 sections:
-1. Problem statement (with core challenge)
-2. Data assets
-3. Domain context
-4. Target venue
-5. Success criteria (with at least one metric)
-6. Comparator methods (at least 2)
-7. Adjacent fields
-8. Evaluation design
-9. Scope / non-goals
+Procedure:
 
-**Heuristic**: If the input is fewer than 30 lines, it is almost certainly sparse.
+1. Tokenize the input file into top-level sections (headings starting with `#`, `##`,
+   or lines matching the regex `^[A-Z][A-Za-z ]{2,40}:\s*$`).
+2. For each of the 9 canonical sections below, mark PRESENT if any heading
+   fuzzy-matches its key phrase (case-insensitive substring match against the
+   phrase list in `research_brief_template.md`):
+   1. "problem"            → Problem statement (with core challenge)
+   2. "data"               → Data assets
+   3. "domain" | "context" → Domain context
+   4. "venue" | "journal"  → Target venue
+   5. "success" | "metric" → Success criteria (with at least one metric)
+   6. "comparator" | "baseline" → Comparator methods (at least 2)
+   7. "adjacent" | "related field" → Adjacent fields
+   8. "evaluation" | "experiment" → Evaluation design
+   9. "scope" | "non-goal" → Scope / non-goals
+3. Within each PRESENT section, require at least one non-blank substantive
+   line (not just the heading). A heading with empty body does NOT count.
+4. **SPARSE** if PRESENT count < 5.
+   **COMPLETE** if PRESENT count ≥ 5.
+5. Additionally, force SPARSE if the "Comparator methods" section has fewer
+   than 2 named methods (regex: lines containing a citation key, an arXiv
+   ID, or an "Author (Year)" pattern).
+
+Record per-section presence/absence in `pipeline/phase0_scope/sparseness_check.md`.
 
 ### If ≥ 5 sections present: SKIP Phase 0
 Proceed directly to Phase 1 with the input file as the research brief.
@@ -250,11 +314,28 @@ contains ALL required sections:
 | Theoretical Properties (expected) | At least 1 property, marked PROVEN/CONJECTURED/UNKNOWN |
 | Expected Strengths | At least 2 |
 | Expected Weaknesses | At least 1 |
+| Brief Audit (`brief_audit.md`) | Every brief idea labeled DEVELOP / COMPLEMENT / ACKNOWLEDGE / REJECT, with REJECT items having a substantive reason |
+| Phase 1 Literature Briefing (`briefings/literature_briefing.md`) | Synthesized digest for Phase 3 reuse: Papers Read, Per-Paper Takeaways, Provides/Needs Matrix Reference, Positioning Seeds, Coverage Gaps for Phase 3 |
 
-**If any section is missing or empty:** Do NOT proceed. Log the gap in
-`pipeline/pipeline_log.md`. Re-dispatch methodology-architect with explicit
-instruction to fill the gap. (This should be rare — the methodology-architect
-skill includes these requirements.)
+### `brief_audit.md` Specification
+
+Produced by methodology-architect's Phase 0.5. Required structure:
+
+| Item ID | Source quote (≤ 30 words) | Classification | Where it lands |
+|---------|---------------------------|----------------|----------------|
+| IDEA-1  | ...                       | DEVELOP        | Methods §3     |
+| IDEA-2  | ...                       | COMPLEMENT     | Discussion §6  |
+| EXAMPLE-1 | ...                     | ACKNOWLEDGE    | Intro §1.2     |
+| IDEA-3  | ...                       | REJECT         | (substantive reason) |
+
+Phase 3's Brief Fidelity Check (§Phase 3 Gate) verifies every DEVELOP / COMPLEMENT
+row is substantively present in the manuscript.
+
+**If any section is missing or empty:** Re-dispatch methodology-architect with
+explicit instruction to fill the gap. Increment `phase1_retries`.
+**If `phase1_retries >= max_phase_retries`:** STOP with outcome
+`PHASE_1_INCOMPLETE`. Write `pipeline/final_report.md` listing the gap and
+the architect's last output. Do not silently loop.
 
 **If complete:** Update pipeline_state.md → Phase 1 COMPLETED. Proceed to Phase 2.
 
@@ -283,26 +364,71 @@ Check the **Verdict** field:
 |---------|--------|
 | **GO** | Proceed to Phase 3. Log the quantitative advantage (primary metric, magnitude). |
 | **CONDITIONAL GO** | Proceed to Phase 3. Log the conditions under which the advantage holds, and the conditions under which it doesn't. Write both into the Phase 3 dispatch instructions. |
-| **MARGINAL** | **STOP.** Surface the validation report to the user. Include the key numbers and ask: "The method shows marginal advantage. Should we proceed to write a paper, try a different approach, or stop?" Do NOT proceed without user input. |
+| **MARGINAL** | Write `pipeline/MARGINAL_decision_required.md` (template below). Set `pipeline_state.md` → `status: AWAITING_USER_INPUT`. Halt. To resume, the user edits the file's `Decision:` line to one of `PROCEED | RETHINK | STOP`, then re-invokes `/research-pipeline` (resume mode picks up the decision automatically). |
 | **NO-GO** | Invoke RETHINK protocol (see below). |
+
+### MARGINAL Decision File Format
+
+When Phase 2 returns MARGINAL, write `pipeline/MARGINAL_decision_required.md`:
+
+```markdown
+# MARGINAL Decision Required
+
+## Validation Summary
+- Verdict: MARGINAL
+- Primary metric: [name]
+- Method: [value ± MC SE]
+- Comparator: [value ± MC SE]
+- Advantage: [value] ([X]% relative)
+- Conditions where advantage holds: [list]
+
+## Decision: [PENDING | PROCEED | RETHINK | STOP]
+## Decision rationale (optional): [user fills in]
+
+## How to resume
+Set `Decision:` above to one of:
+  - PROCEED  → run Phase 3 with CONDITIONAL GO framing
+  - RETHINK  → re-dispatch Phase 1 (counts toward max_rethinks)
+  - STOP     → write final_report.md with outcome=MARGINAL_STOP
+Then run: `/research-pipeline research_brief.md` (resume detected from pipeline_state.md)
+```
+
+### MARGINAL Resume Logic
+
+On resume, after reading `pipeline_state.md`, if status is `AWAITING_USER_INPUT`,
+read `MARGINAL_decision_required.md`:
+  - If Decision == PENDING → halt again with a reminder message.
+  - If Decision == PROCEED → set verdict=CONDITIONAL_GO in pipeline_state,
+    proceed to Phase 3 dispatch (annotate decision_log with user override).
+  - If Decision == RETHINK → invoke RETHINK protocol (counts toward max_rethinks).
+  - If Decision == STOP → write final_report.md with outcome=MARGINAL_STOP.
 
 ### RETHINK Protocol
 
+**Why a cap at all?** Each rethink burns one full Phase 1 (~200K tokens) +
+Phase 2 (~120K tokens) cycle. Empirically (Wiles heuristic), if the same
+architect can't fix a validation failure within 2 attempts, the failure is
+likely fundamental — additional rethinks waste budget without changing the
+diagnosis. Override via `max_rethinks=N` if you have a specific reason
+to believe the third attempt would be different (e.g., new data arrived).
+
 When Phase 2 returns NO-GO:
 
-1. Check rethink counter. If rethinks >= 2: **STOP** with honest failure report.
+1. Check rethink counter. If rethinks >= `max_rethinks`: **STOP** with honest failure report.
    Write to `pipeline/final_report.md` with outcome = NO_GO.
 
-2. If rethinks < 2:
-   a. Read the full validation report, focusing on:
-      - "Why it didn't work" (specific diagnosis per iteration)
-      - "What would need to change"
-      - "Fundamental vs fixable"
-   b. If the report says "fundamental limitation": **STOP.** Don't waste another
-      rethink on an approach the validator already determined can't work.
-   c. If the report says "fixable" or suggests alternatives:
-      - Extract the failure diagnosis as a structured summary
-      - Re-dispatch Phase 1 (methodology-architect) with the failure diagnosis
+2. If rethinks < `max_rethinks`:
+   a. Dispatch failure-diagnoser:
+      ```
+      Invoke failure-diagnoser (Task agent) with:
+        prompt: "/failure-diagnoser pipeline/phase2_validate/validation_report.md"
+        Output: pipeline/phase2_validate/failure_diagnosis.md
+      ```
+   b. If `failure_diagnosis.md` verdict is `STOP_FUNDAMENTAL`: **STOP.** Don't waste
+      another rethink on an approach the diagnoser already determined can't work.
+   c. If `failure_diagnosis.md` verdict is `RETHINK_RECOMMENDED`:
+      - Re-dispatch Phase 1 (methodology-architect) with `failure_diagnosis.md`
+        as the failure-feedback input
       - Increment rethink counter
       - On architect completion, re-enter Phase 2 with the revised spec
 
@@ -371,9 +497,19 @@ After write-manuscript completes, verify:
 - [ ] `pipeline/phase3_write/references.bib` exists with at least 10 entries
 - [ ] `pipeline/phase3_write/data/` contains evaluation result CSVs
 
-**If any are missing:** log the gap and re-dispatch write-manuscript with
-explicit instruction to produce the missing artifact. Do NOT proceed to Phase 4
-with an incomplete manuscript.
+**If any are missing:** Re-dispatch write-manuscript with explicit instruction
+to produce the missing artifact. Increment `phase3_retries`.
+**If `phase3_retries >= max_phase_retries`:** STOP with outcome
+`PHASE_3_INCOMPLETE`. Write `pipeline/final_report.md` and surface the
+incomplete artifacts to the user. Do not proceed to Phase 4.
+
+### Brief Fidelity Check
+
+Read `pipeline/phase1_think/brief_audit.md`. For each item classified as
+DEVELOP or COMPLEMENT, verify it appears substantively in the manuscript
+(not just mentioned in passing or relegated to an appendix without discussion).
+If any DEVELOP item is missing from the manuscript, re-dispatch write-manuscript
+with explicit instruction to include it (counts toward `max_phase_retries`).
 
 **If complete:** Update pipeline_state.md → Phase 3 COMPLETED. Proceed to Phase 4.
 
@@ -386,15 +522,37 @@ with an incomplete manuscript.
 ```
 Round 0:
   Grade pipeline/phase3_write/manuscript.tex
-  If score >= target: → SUCCESS (skip fixing)
+  If venue_compliance=on: also dispatch venue-compliance-gate
+  If score >= target AND venue_compliance verdict != FAIL: → SUCCESS (skip fixing)
 
 For round = 1 to max_polish:
-  1. Fix: dispatch paper-fixer on the grade report
+  1. Fix: dispatch paper-fixer on the grade report (+ venue compliance fixable issues if any)
   2. Grade: dispatch paper-grader on the fixed manuscript
-  3. If score >= target: → SUCCESS
-  4. If score < target and rounds remaining: continue
-  5. If max rounds reached: → VALIDATED_BELOW_TARGET
+  3. If venue_compliance=on: dispatch venue-compliance-gate; if FAIL with non-fixable issues
+     → exit with VALIDATED_BUT_VENUE_NONCOMPLIANT
+  4. If score >= target AND venue compliance OK: → SUCCESS (proceed to Phase 4.5)
+  5. If score < target and rounds remaining: continue
+  6. If max rounds reached: → VALIDATED_BELOW_TARGET (still proceed to Phase 4.5)
 ```
+
+### Phase 4 Sub-Gate: Venue Compliance (if `venue_compliance=on`)
+
+After each grader call, before deciding to exit/loop:
+
+```
+Invoke venue-compliance-gate (Task agent) with:
+  prompt: "/venue-compliance-gate pipeline/phase4_polish/round_N/manuscript.tex research_brief.md"
+  Output: pipeline/phase4_polish/round_N/venue_compliance.md
+```
+
+- Verdict PASS → no action; proceed to grade-based exit decision
+- Verdict PASS_WITH_WARNINGS → log warnings; proceed
+- Verdict FAIL with fixable issues → add as high-priority items in next paper-fixer
+  dispatch's fix list (alongside grader-derived issues). Do NOT exit Phase 4 with
+  venue compliance failing.
+- Verdict FAIL with non-fixable issues (e.g., page limit exceeded by >20%
+  requiring substantive cuts) → exit Phase 4 with outcome
+  `VALIDATED_BUT_VENUE_NONCOMPLIANT`.
 
 ### Phase 4 Dispatch: Grading
 
@@ -442,6 +600,33 @@ an execution error. Log methodology concerns but do not try to fix them in Phase
 
 ---
 
+## Phase 4.5: CONSISTENCY AUDIT (gate before finalization)
+
+After Phase 4 reaches SUCCESS or VALIDATED_BELOW_TARGET (any exit other than
+VALIDATED_BUT_VENUE_NONCOMPLIANT), dispatch consistency-auditor before writing
+the final report:
+
+```
+Invoke consistency-auditor (Task agent) with:
+  prompt: "/consistency-auditor pipeline/phase4_polish/round_N/manuscript.tex"
+  Output: pipeline/phase4_polish/round_N/consistency_report.md
+```
+
+### Phase 4.5 Gate
+
+- **Verdict PASS** → proceed to Final Report.
+- **Verdict PASS_WITH_WARNINGS** → proceed; copy warnings into `final_report.md`
+  under "Residual Issues."
+- **Verdict FAIL** → re-dispatch paper-fixer with `consistency_report.md` as
+  input (counts toward `max_polish + 1` extra "consistency round"). After
+  paper-fixer completes, re-grade and re-audit. If second consistency audit
+  also FAILs → STOP with outcome `CONSISTENCY_FAILURE`; surface report to user.
+
+`consistency_report.md` is also included in the final_report's "All Files
+Produced" list and its "Residual Issues" section if any warnings remain.
+
+---
+
 ## Pipeline Log
 
 Append to `pipeline/pipeline_log.md` after EVERY phase transition. Format:
@@ -486,8 +671,11 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 | 4. POLISH | [COMPLETED/IN_PROGRESS/PENDING] Round N/max | paper_grade.md |
 
 ## Rethink Count: [0/1/2]
+## Phase1 Retries: [0/1/2]
+## Phase3 Retries: [0/1/2]
 ## Polish Round: [0/1/2/3]
 ## Latest Score: [X/50 or N/A]
+## Marginal Decision: [N/A | PENDING | PROCEED | RETHINK | STOP]
 
 ## Context for Resume
 [What the next phase needs to know to start. Include file paths, not content.]
@@ -504,7 +692,11 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 | **MARGINAL** | Phase 2 returns MARGINAL verdict | Stop. Surface to user for decision. |
 | **NO_GO** | Phase 2 fails after max rethinks | Write honest failure report. |
 | **KILL** | validate-method invokes kill criterion | Write honest failure report. Fundamental limitation identified. |
-| **PHASE_1_INCOMPLETE** | methodology-architect can't produce valid spec | Write failure report. Problem may be underspecified. |
+| **PHASE_1_INCOMPLETE** | methodology-architect can't produce valid spec after `max_phase_retries` | Write failure report. Problem may be underspecified. |
+| **PHASE_3_INCOMPLETE** | write-manuscript can't produce all required artifacts after `max_phase_retries` | Write failure report. Surface incomplete artifacts. |
+| **MARGINAL_STOP** | User set `Decision: STOP` in `MARGINAL_decision_required.md` | Write final report with outcome=MARGINAL_STOP. |
+| **CONSISTENCY_FAILURE** | consistency-auditor returns FAIL twice in a row (Phase 4.5) | Surface report; do not finalize. |
+| **VALIDATED_BUT_VENUE_NONCOMPLIANT** | venue-compliance-gate (Phase 4) FAIL with non-fixable issues | Surface report; the manuscript is valid but cannot meet venue submission limits. |
 
 ---
 
@@ -587,9 +779,17 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
 4. **"Let me run all phases in parallel"** — NO. The phases are strictly sequential.
    Each phase's output is the next phase's input. There are no shortcuts.
 
-5. **"The validation took too long, let me skip stress tests"** — validate-method
-   manages its own time budget. If it returns a report with incomplete stress tests,
-   note this in the pipeline log but proceed — partial validation > no validation.
+5. **"The validation took too long, let me skip stress tests"** —
+   validate-method manages its own time budget. Acceptance rule:
+   - **Required**: scale + adversarial + sensitivity + ablation, all 4 stress
+     test types listed in `validate-method/SKILL.md §Step 4` must be present
+     in `validation_report.md` AND backed by at least one CSV in
+     `validated_results/` each.
+   - **Partial-OK threshold**: at most ONE of the four may be marked
+     `INCOMPLETE — [reason]` in the report. If two or more are incomplete,
+     the verdict is **automatically downgraded to MARGINAL** regardless of
+     what the report claims, and the MARGINAL decision file (§Phase 2) is written.
+   - Zero tests skipped silently. Every skip needs a logged reason.
 
 6. **"Let me re-run Phase 2 with the same spec to see if I get a better result"** —
    NO. validate-method is deterministic (fixed seeds). The same spec will produce
@@ -606,14 +806,31 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
 
 The orchestrator itself is lightweight. It dispatches phases and checks outputs.
 
-| Component | Orchestrator Budget | Phase Agent Budget |
-|-----------|--------------------|--------------------|
-| Phase 1 dispatch + gate check | ~5K tokens | ~200K (methodology-architect) |
-| Phase 2 dispatch + gate check | ~5K tokens | ~100K (validate-method) |
-| Phase 3 dispatch + gate check | ~5K tokens | ~200K (write-manuscript) |
-| Phase 4 loop (per round) | ~5K tokens | ~80K (grader + fixer) |
-| Pipeline log + state + report | ~10K tokens | — |
-| **Orchestrator total** | **~35K tokens** | — |
+| Component                                | Orchestrator Budget | Phase Agent Budget                                                  |
+|------------------------------------------|---------------------|---------------------------------------------------------------------|
+| Phase 0 dispatch + gate                  | ~3K                 | ~60K (brief-expander)                                               |
+| Phase 1 dispatch + gate                  | ~5K                 | ~200K (methodology-architect; up to ~250K in revision/RETHINK mode) |
+| Phase 2 dispatch + gate                  | ~5K                 | ~120K (validate-method incl. stress tests)                          |
+| Phase 3 dispatch + gate                  | ~5K                 | ~250K (write-manuscript orchestrator + 4–7 sub-dispatches)          |
+| Phase 4 loop (per round)                 | ~8K                 | ~120K (grader 80K + fixer 40K)                                      |
+| Phase 4.5 dispatch + gate                | ~3K                 | ~30K (consistency-auditor)                                          |
+| Pipeline log + state + report            | ~10K                | —                                                                   |
+| **Orchestrator total** (4 phases + 3 polish rounds) | **~60K**  | —                                                                   |
+
+### Phase 4 cost scaling
+
+Each polish round costs ~120K agent tokens. With `max_polish=3` (default),
+budget ~360K for Phase 4. With `max_polish=6`, ~720K. The orchestrator itself
+stays bounded (~8K per round), but the dispatched grader/fixer agents are
+the dominant cost.
+
+**Token budgeting guidance**:
+- For papers with `target>=42` (Grade A), expect 2–3 polish rounds typical.
+- If first-round grade `< target − 8`, polishing rarely closes the gap;
+  consider RETHINK instead of polishing.
+- Recommended cap: `max_polish=4` for most runs; raise only if first-round
+  grade is within 4 points of target AND progress is monotonic.
+- Log per-round token estimate in `pipeline_log.md` so the user sees burn rate.
 
 The orchestrator should comfortably fit within a single context window.
 Each phase agent runs in its own context (via Task tool dispatch).
