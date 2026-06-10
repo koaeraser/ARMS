@@ -33,10 +33,13 @@ research-pipeline (outer orchestrator)
 │   ├── paper-modeler
 │   ├── paper-writer
 │   └── paper-critic
-└── Phase 4: POLISH    → paper-grader + paper-fixer
+├── Phase 4: POLISH    → paper-grader + paper-fixer
+└── Augmentation       → critic-revisor (adversarial review + Codex revision)
 ```
 
 Each phase is a **separate agent invocation** with its own context window. Communication between phases happens exclusively through **files on disk** (the "anti-telephone-game" pattern — no information is passed through agent summaries that could degrade).
+
+The **critic-revisor** is an optional adversarial-revision layer that runs *after* the pipeline produces a draft. Where Phase 4 fixes execution quality from a single grader, the critic-revisor pits two independent reviewers against the manuscript each round and routes their combined critique to a different model family for the rewrite. See [Augmentation](#augmentation-adversarial-critic-revisor) below.
 
 ### Phase Gates and Feedback Loops
 
@@ -82,6 +85,27 @@ Each phase is a **separate agent invocation** with its own context window. Commu
 |-------|------|-------|
 | **`paper-grader`** | Reviewer agent. Scores the manuscript on 7 dimensions (Correctness, Completeness, Rigor, Clarity, Novelty, Impact, Performance) using a calibrated rubric. Dispatches a code auditor subagent for computational correctness checks. Research dimensions (Novelty, Impact, Performance) carry 2x weight. Max score: 50. | 408 |
 | **`paper-fixer`** | Copy-editor agent. Applies targeted fixes from the grade report. Strict whitelist/blacklist: may fix formula transcription errors, table mismatches, broken references, and clarity issues. May NOT change methodology, re-run experiments, delete unfavorable results, or add new evaluations. | 297 |
+
+## Augmentation: Adversarial Critic-Revisor
+
+The 11 skills above take an idea to a polished draft. The **`critic-revisor`** is an optional layer that pushes that draft further through rounds of adversarial review, applied to any LaTeX manuscript (not only ARMS output).
+
+| Skill | Role |
+|-------|------|
+| **`critic-revisor`** | Autonomous critic-revisor loop. Each round, **two independent Opus reviewers** read the manuscript with differentiated angles — a *methodologist* (math, proofs, simulation design) and an *applied/contextual reader* (framing, positioning, reproducibility). Each writes a capped, ranked critique (≤5 Major, ≤10 Minor) where every comment carries a quoted passage and a concrete fix. A separate **Codex** agent applies the combined critique; **latexmk + latexdiff** rebuild a clean PDF and a colour-tracked diff each round. |
+
+**Why it is separate from Phase 4.** Phase 4 fixes execution quality from a single grader and cannot touch methodology. The critic-revisor is adversarial and many-eyed: two reviewers per round, differentiated by angle, and the model that *reviews* is not the model that *revises* (Opus reviews, Codex rewrites — the "opus review, gpt work" separation). This separation is what lets honest disagreement surface instead of a single agent grading its own prose.
+
+**Hallucination control.** The loop's central failure mode is a reviewer "correcting" a claim it cannot see the source of. Two defenses: (1) reviewers get a tiered per-round web-search budget (8 / 3 / 1 queries) to *verify* citations and prior art rather than reconstruct them from memory; (2) a **source-dependent-claim rule** routes any restated theorem/dataset value/number a reviewer cannot verify to a flags section for a human — the revisor never acts on it.
+
+**Stop conditions.** The loop ends when both reviewers vote `accept`, when neither raises a Major comment, when Codex produces no diff, when the clean build fails, or when the round budget is exhausted.
+
+```bash
+# Run the loop on any manuscript (optionally pass a source pack for citation verification)
+bash skills/critic-revisor/run_loop.sh path/to/manuscript.tex 5 [venue] [--sources <paths>]
+```
+
+Requires `codex` (logged in), `latexmk`, `latexdiff`, and `claude` on `PATH`. Each round is snapshotted under `critic_revisor_logs/run_<timestamp>/`; nothing is destructive to the original `.tex`.
 
 ## Why This Architecture
 
@@ -143,7 +167,10 @@ ARMS/
 │   ├── paper-writer/SKILL.md              #   Phase 3 sub-agent
 │   ├── paper-critic/SKILL.md              #   Phase 3 sub-agent
 │   ├── paper-grader/SKILL.md              #   Phase 4: POLISH
-│   └── paper-fixer/SKILL.md               #   Phase 4: POLISH
+│   ├── paper-fixer/SKILL.md               #   Phase 4: POLISH
+│   └── critic-revisor/                    #   Augmentation: adversarial review loop
+│       ├── SKILL.md                       #     Orchestrator (Opus review, Codex revise)
+│       └── run_loop.sh                    #     The loop script
 ├── examples/
 │   └── conformal_prediction/              # Worked example brief
 │       └── research_brief.md
