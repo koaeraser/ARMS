@@ -221,7 +221,7 @@ Two additional case studies using the biostatistics-specific version of these sk
 
 ## Provenance
 
-Developed March 2026. The v1 system (simple write-grade-fix loop) identified the plateau problem; the v2 system was designed from scratch to address it. The 11 pipeline skills were generalized to domain-agnostic form and first released on 2026-03-24; the conformal prediction case study was produced the same day, as the first test of the generalized skills. The **Critic-Revisor** augmentation (the 12th skill) was added on 2026-06-10.
+Developed March 2026. The v1 system (simple write-grade-fix loop) identified the plateau problem; the v2 system was designed from scratch to address it. The 11 pipeline skills began as a biostatistics-specific pipeline ([ARMS-Biostat](https://github.com/koaeraser/ARMS-Biostat), KG-DAP run 2026-03-23), then were generalized to domain-agnostic form and first released here on 2026-03-24; the conformal prediction case study was produced the same day, as the first test of the generalized skills. The **Critic-Revisor** augmentation (the 12th skill) was added on 2026-06-10.
 
 ## License
 
