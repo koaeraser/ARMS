@@ -1,6 +1,6 @@
 # ARMS: Autonomous Research Manuscript Skills
 
-A system of 11 coordinated [Claude Code](https://claude.com/claude-code) skills that automate the full lifecycle of a research methodology paper — from idea to polished manuscript. **Domain-agnostic**: all domain knowledge lives in the research brief, not in the skills.
+A system of 12 coordinated [Claude Code](https://claude.com/claude-code) skills that automate the full lifecycle of a research methodology paper — from idea to a polished, adversarially revised manuscript. Eleven skills form the autonomous pipeline; the twelfth, the **Critic-Revisor**, is an optional adversarial-revision layer that runs on the resulting draft. **Domain-agnostic**: all domain knowledge lives in the research brief, not in the skills.
 
 ## Quick Start
 
@@ -48,7 +48,9 @@ The **critic-revisor** is an optional adversarial-revision layer that runs *afte
 - **Phase 4 (POLISH loop):** Grade → fix → re-grade, up to 3 rounds. Fixes are restricted to **execution quality only** (formulas, tables, citations, clarity) — not methodology.
 - **Kill criteria:** The system can honestly report failure (NO-GO, KILL) rather than producing a paper about a method that doesn't work.
 
-## The 11 Skills
+## The 11 Pipeline Skills
+
+These eleven skills form the autonomous pipeline (the twelfth, the Critic-Revisor, is the augmentation documented in the next section).
 
 ### Phase 0: SCOPE (optional)
 
@@ -88,7 +90,7 @@ The **critic-revisor** is an optional adversarial-revision layer that runs *afte
 
 ## Augmentation: Adversarial Critic-Revisor
 
-The 11 skills above take an idea to a polished draft. The **`critic-revisor`** is an optional layer that pushes that draft further through rounds of adversarial review, applied to any LaTeX manuscript (not only ARMS output).
+The 11 pipeline skills above take an idea to a polished draft. The **`critic-revisor`** — the 12th skill — is an optional layer that pushes that draft further through rounds of adversarial review, applied to any LaTeX manuscript (not only ARMS output).
 
 | Skill | Role |
 |-------|------|
@@ -156,7 +158,7 @@ ARMS/
 ├── LICENSE                                # CC BY-NC 4.0
 ├── DISCLAIMER.md                          # LLM verification disclaimer
 ├── research_brief_template.md             # Start here — fill this out
-├── skills/                                # 11 pipeline skills
+├── skills/                                # 12 skills (11 pipeline + Critic-Revisor)
 │   ├── research-pipeline/SKILL.md         #   Outer orchestrator
 │   ├── brief-expander/SKILL.md            #   Phase 0: SCOPE
 │   ├── methodology-architect/SKILL.md     #   Phase 1: THINK
@@ -219,7 +221,7 @@ Two additional case studies using the biostatistics-specific version of these sk
 
 ## Provenance
 
-Developed March 2026. The v1 system (simple write-grade-fix loop) identified the plateau problem; the v2 system was designed from scratch to address it. Skills generalized to domain-agnostic form on 2026-03-24. The conformal prediction case study was produced the same day as the first test of the generalized skills.
+Developed March 2026. The v1 system (simple write-grade-fix loop) identified the plateau problem; the v2 system was designed from scratch to address it. The 11 pipeline skills were generalized to domain-agnostic form and first released on 2026-03-24; the conformal prediction case study was produced the same day, as the first test of the generalized skills. The **Critic-Revisor** augmentation (the 12th skill) was added on 2026-06-10.
 
 ## License
 
