@@ -49,6 +49,7 @@ through files on disk.
 | `max_rethinks` | Maximum Phase 1↔Phase 2 RETHINK cycles | 2 |
 | `max_phase_retries` | Max times to re-dispatch a single phase agent on gate failure | 2 |
 | `venue_compliance` | Run venue-compliance-gate inside Phase 4 (`on` / `off`). Default `off` so drafting is not bottlenecked by formatting limits — turn on at submission time, when a target venue has been chosen. | off |
+| `pre_submission_review` | Run review-paper as Phase 4.7 before finalization (`on` / `off`). Default `on`; turn off only for internal-only drafts not headed to a journal. | on |
 
 **User-invocable.** This is the top-level entry point for autonomous paper production.
 
@@ -162,6 +163,7 @@ pipeline/
 │   │   ├── manuscript.tex
 │   │   ├── paper_grade.md
 │   │   ├── consistency_report.md         ← consistency-auditor verdict
+│   │   ├── pre_submission_review.md      ← review-paper verdict (Phase 4.7)
 │   │   └── venue_compliance.md           ← (if venue_compliance=on)
 │   ├── round_2/
 │   │   └── ...
@@ -627,6 +629,55 @@ Produced" list and its "Residual Issues" section if any warnings remain.
 
 ---
 
+## Phase 4.7: PRE-SUBMISSION REVIEW (gate before finalization)
+
+After Phase 4.5 returns PASS or PASS_WITH_WARNINGS, dispatch the
+`review-paper` skill against the manuscript. The goal is to simulate an
+external expert reviewer's pass *before* the manuscript leaves the pipeline,
+catching the kind of issues that real journal reviewers tend to flag —
+math symbols in the abstract, redundant introduction passages, mismatched
+geometric claims, opportunities the methodology missed — that the
+mechanical checks of Phase 4.5 don't surface.
+
+**Why a separate phase from 4.5?** Phase 4.5 verifies internal consistency
+between the manuscript and the pipeline's own artefacts (formulas vs. code,
+numbers vs. CSVs, figures vs. captions). Phase 4.7 asks a different
+question: *if a domain-expert reviewer read this manuscript cold, what
+would they call out?* Telemetry across multiple revision cycles shows
+roughly half of post-submission reviewer comments are detectable by an
+expert reading the manuscript in isolation; running `review-paper`
+against our own draft catches them earlier.
+
+```
+Invoke review-paper (Task agent) with:
+  prompt: "/review-paper pipeline/phase4_polish/round_N/manuscript.tex"
+  Output: pipeline/phase4_polish/round_N/pre_submission_review.md
+```
+
+### Phase 4.7 Gate
+
+`review-paper` produces severity-tagged findings (Critical / Major / Minor).
+
+- **No Critical findings** → proceed to Final Report. Major and Minor
+  findings are copied into the final report's "Residual Issues" section.
+- **Critical findings present** → re-dispatch paper-fixer with
+  `pre_submission_review.md` as input (one extra "pre-submission round",
+  separate from `max_polish` so a clean structural fix doesn't burn the
+  polish budget). After paper-fixer completes, re-grade and re-run Phase
+  4.7. If the second pre-submission review still has Critical findings →
+  STOP with outcome `PRE_SUBMISSION_REVIEW_FAILURE`; surface the report
+  to the user (the manuscript is internally consistent but has a
+  reviewer-blocking issue that automation could not fix).
+
+### When to skip Phase 4.7
+
+Default: ON. Skip only if the user passes `pre_submission_review=off` to
+`/research-pipeline` (e.g., when the pipeline is being used to produce
+internal-only drafts that won't go to a journal). Skipping is logged in
+the final report.
+
+---
+
 ## Pipeline Log
 
 Append to `pipeline/pipeline_log.md` after EVERY phase transition. Format:
@@ -696,6 +747,7 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 | **PHASE_3_INCOMPLETE** | write-manuscript can't produce all required artifacts after `max_phase_retries` | Write failure report. Surface incomplete artifacts. |
 | **MARGINAL_STOP** | User set `Decision: STOP` in `MARGINAL_decision_required.md` | Write final report with outcome=MARGINAL_STOP. |
 | **CONSISTENCY_FAILURE** | consistency-auditor returns FAIL twice in a row (Phase 4.5) | Surface report; do not finalize. |
+| **PRE_SUBMISSION_REVIEW_FAILURE** | review-paper returns Critical findings twice in a row (Phase 4.7) | Surface `pre_submission_review.md`; manuscript is internally consistent but a reviewer-blocking issue remains that automation could not fix. |
 | **VALIDATED_BUT_VENUE_NONCOMPLIANT** | venue-compliance-gate (Phase 4) FAIL with non-fixable issues | Surface report; the manuscript is valid but cannot meet venue submission limits. |
 
 ---
@@ -814,8 +866,9 @@ The orchestrator itself is lightweight. It dispatches phases and checks outputs.
 | Phase 3 dispatch + gate                  | ~5K                 | ~250K (write-manuscript orchestrator + 4–7 sub-dispatches)          |
 | Phase 4 loop (per round)                 | ~8K                 | ~120K (grader 80K + fixer 40K)                                      |
 | Phase 4.5 dispatch + gate                | ~3K                 | ~30K (consistency-auditor)                                          |
+| Phase 4.7 dispatch + gate (if `pre_submission_review=on`) | ~3K  | ~50K (review-paper)                                                |
 | Pipeline log + state + report            | ~10K                | —                                                                   |
-| **Orchestrator total** (4 phases + 3 polish rounds) | **~60K**  | —                                                                   |
+| **Orchestrator total** (4 phases + 3 polish rounds + Phase 4.7) | **~63K** | —                                                              |
 
 ### Phase 4 cost scaling
 
