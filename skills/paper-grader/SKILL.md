@@ -78,6 +78,9 @@ Score each dimension 1-5. Provide a 2-3 sentence justification for each score.
 | 4 | + Strong motivation; precise contribution statement; good flow |
 | 5 | + Elegant exposition; every paragraph earns its place; compelling narrative |
 
+Clarity includes the **measured style gate** (§Measured Style Gate below): apply its cap
+after scoring the anchors above.
+
 ### 5. Novelty (1-5)
 | Score | Meaning |
 |-------|---------|
@@ -177,6 +180,46 @@ Weighted total = (Correctness + Completeness + Rigor + Clarity) x 1.0
               + (Novelty + Impact + Performance) x 2.0
 Max weighted = 4x5 + 3x10 = 50   (reported as /50)
 ```
+
+## Measured Style Gate (Clarity)
+
+The house voice and its bands are defined in `.claude/skills/house-style/SKILL.md`, section
+"Measured style gate"; do not restate or re-derive the bands. Passing the tic checks (no
+em-dashes, "we" present, defined terms used correctly, no stock transitions) is necessary and
+**never sufficient**: it does not by itself mean the house voice passes, and a grade report
+must not say it does.
+
+**Measure.** Use the `style_metrics.json` path in the dispatch prompt if one is given.
+Otherwise run the script yourself (it only reads files; print to stdout, write nothing):
+
+```sh
+python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> --gate --sections --genre <G> [--ref <exemplar>]
+```
+
+with `<G>` and the exemplar taken from the dispatch prompt (default: `--genre default`, no
+`--ref`). Read `pipeline/style_exceptions.md` if it exists. A failing band counts as
+**excepted** only when its exception row gives a genre-inherent reason; a budget exception
+(rounds ran out) does not lift the cap.
+
+**Cap rule.** Let F be the number of failing bands that are not excepted.
+
+| F | Clarity cap |
+|---|---|
+| 0 | none |
+| 1 | 4 |
+| 2–3 | 3.5 |
+| ≥ 4 | 3 (wrong register: a report, not the house voice) |
+
+Apply the cap after the anchor score and after any code-audit adjustment; the cap only lowers a
+score. A band failing by a hair counts as failing; the bands are the contract. F = 0 lifts no
+score by itself: tics, flow-level tells, and structure are still judged by reading, and a
+manuscript inside the bands can still score low on Clarity.
+
+**Report.** Under the Clarity justification, include the gate table (metric, reference,
+manuscript, band, PASS/FAIL), F, the cap applied, and the two or three sections the
+`--sections` table shows furthest out of band. List every non-excepted failing band under
+"Fixable Issues" with the instruction "run house-style thorough with `--relocate-numbers` on
+the flagged sections".
 
 ## Phase B: Evaluation Code Audit
 
@@ -373,6 +416,11 @@ After the Code Auditor returns its report:
 
 ### 4. Clarity: [score]/5
 [2-3 sentence justification]
+Style gate (genre: default | results; bands: default | from <exemplar>):
+| Metric | Ref | Manuscript | Band | Result |
+|--------|-----|------------|------|--------|
+| [one row per banded metric from style_metrics.py] | | | | PASS/FAIL |
+Failing bands not excepted (F): [N]. Cap applied: [none | 4 | 3.5 | 3]. Worst sections: [list]
 
 ### 5. Novelty: [score]/5
 [2-3 sentence justification positioning vs reference papers]

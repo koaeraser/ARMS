@@ -11,7 +11,7 @@ For execution detail and prompt content see `SKILL.md`. For the brief format, se
 ## Quick start
 
 ```
-/research-pipeline research_brief.md [target=42] [max_polish=3] [max_rethinks=2] [max_phase_retries=2] [venue_compliance=on]
+/research-pipeline research_brief.md [target=42] [max_polish=3] [max_rethinks=2] [max_phase_retries=2] [venue_compliance=on] [style_gate=on] [style_ref=reference/style_exemplar.tex] [style_genre=default]
 ```
 
 The orchestrator creates a `pipeline/` directory in the project root and writes every phase's outputs to disk. Resume from any interruption by re-invoking with the same brief — `pipeline_state.md` is the source of truth, with filesystem-based recovery if the state file is corrupt.
@@ -55,8 +55,9 @@ Final outcomes: `SUCCESS` | `VALIDATED_BELOW_TARGET` | `MARGINAL_STOP` | `NO_GO`
              │     │ manuscript   │   →  anomaly_log.md
              │     │ ├ literature-lead    (incremental — reuses Phase 1)
              │     │ ├ paper-modeler      (canonical formula+anomaly owner)
-             │     │ ├ paper-writer
-             │     │ └ paper-critic
+             │     │ ├ paper-writer       (drafts in the house voice, self-checks per section)
+             │     │ ├ paper-critic
+             │     │ └ house-style        (final style pass; style gate at the Phase 3 gate)
              │     └──────┬───────┘
              │            ▼
              │     ┌──────────────┐
@@ -64,6 +65,7 @@ Final outcomes: `SUCCESS` | `VALIDATED_BELOW_TARGET` | `MARGINAL_STOP` | `NO_GO`
              │     │ POLISH       │
              │     │ paper-grader │ ⇄ paper-fixer  (max_polish rounds)
              │     │ + venue-compliance-gate (sub-gate)
+             │     │ + style gate (exit needs style OK)
              │     └──────┬───────┘
              │            ▼
              │     ┌──────────────┐
@@ -93,6 +95,7 @@ Final outcomes: `SUCCESS` | `VALIDATED_BELOW_TARGET` | `MARGINAL_STOP` | `NO_GO`
 | 3 sub | `paper-modeler` | Production evals + canonical `formula_code_audit.md` + `anomaly_log.md` |
 | 3 sub | `paper-writer` | LaTeX prose; reads canonical artifacts, does not re-derive |
 | 3 sub | `paper-critic` | Adversarial review (max 3 rounds, severity-tagged per shared rubric) |
+| 3 sub, 4 | `house-style` | Measured style gate (`style_metrics.py`) and house-voice rewrite; used by write-manuscript (F.2b), paper-fixer (Step 3b), paper-grader (Clarity cap), paper-critic |
 | 4 | `paper-grader` ↔ `paper-fixer` | Score + targeted fixes (max_polish rounds) |
 | 4 sub | `venue-compliance-gate` | Verify abstract/page/figure/table/section limits per target venue |
 | 4.5 | `consistency-auditor` | End-to-end formula/claim/comparator/anomaly/bib audit |
@@ -111,6 +114,8 @@ Final outcomes: `SUCCESS` | `VALIDATED_BELOW_TARGET` | `MARGINAL_STOP` | `NO_GO`
 | `pipeline/phase3_write/briefings/anomaly_log.md` | paper-modeler | paper-writer (Discussion), paper-grader |
 | `pipeline/phase4_polish/round_N/consistency_report.md` | consistency-auditor | research-pipeline (4.5 gate) |
 | `pipeline/phase4_polish/round_N/venue_compliance.md` | venue-compliance-gate | research-pipeline (Phase 4 sub-gate) |
+| `pipeline/phase3_write/style_metrics.json`, `pipeline/phase4_polish/round_N/style_metrics.json` | research-pipeline (runs `style_metrics.py`) | paper-grader, paper-fixer, final report |
+| `pipeline/style_exceptions.md` | research-pipeline | paper-grader (Clarity cap), research-pipeline (Phase 4 exit) |
 
 Downstream skills READ these; they do NOT re-derive. This is enforced in each consumer's SKILL.md.
 

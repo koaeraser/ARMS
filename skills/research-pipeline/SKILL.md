@@ -49,8 +49,66 @@ through files on disk.
 | `max_rethinks` | Maximum Phase 1↔Phase 2 RETHINK cycles | 2 |
 | `max_phase_retries` | Max times to re-dispatch a single phase agent on gate failure | 2 |
 | `venue_compliance` | Run venue-compliance-gate inside Phase 4 (`on` / `off`). Default `off` so drafting is not bottlenecked by formatting limits — turn on at submission time, when a target venue has been chosen. | off |
+| `style_gate` | Enforce the measured writing-style gate at the Phase 3 gate and the Phase 4 exit (`on` / `off`). With `off` the gate is still measured and reported, but it does not block an outcome. | on |
+| `style_ref` | Exemplar paper (`.tex`) whose prose the manuscript should match; the gate bands are derived from it. See house-style §Calibrating to your own exemplar. | `reference/style_exemplar.tex` if it exists, else the default bands |
+| `style_genre` | `results` for results-heavy manuscripts (simulation studies, tutorials, case-study reports), which relaxes the two number bands; otherwise `default`. | default |
 
 **User-invocable.** This is the top-level entry point for autonomous paper production.
+
+---
+
+## Writing Style Gate
+
+Manuscripts leave this pipeline in the house voice defined by the `house-style` skill. Tic
+checks alone do not enforce it: a manuscript can pass every tic check (no em-dashes, "we"
+present, no stock transitions) while averaging 30 words per sentence and 40 numbers per 1,000
+prose words. The single source of truth for the voice and its bands is
+`.claude/skills/house-style/SKILL.md` (sections "The house voice" and "Measured style gate");
+the script is `.claude/skills/house-style/scripts/style_metrics.py` (use
+`~/.claude/skills/house-style/` for a global install). Do not restate the bands here or in
+dispatch prompts; point to them.
+
+**Measurement.** The orchestrator runs the gate itself, since it is a deterministic script and
+not a research task:
+
+```sh
+python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> \
+  --gate --sections --genre <G> [--ref <style_ref>] --json > <dir>/style_metrics.json
+```
+
+`<G>` is the `style_genre` argument; pass `--ref` when `style_ref` resolves to a file. Exit
+code 0 is PASS and 2 is FAIL. Keep the JSON next to the manuscript it measures.
+
+**Style block for dispatch prompts.** Every Phase 3 and Phase 4 dispatch that writes, fixes,
+grades, or reviews prose (write-manuscript, paper-grader, paper-fixer, and the Phase 4.5 fix
+round) appends this block:
+
+```
+## House voice (mandatory)
+Write and judge prose in the house voice. Before any prose work, read
+.claude/skills/house-style/SKILL.md, sections "The house voice", "Measured style gate",
+"AI tics", and "Hard constraints".
+Exemplar: <style_ref path, or "none: default bands">. If an exemplar is given, read the
+three passages house-style §Procedure step 2 names.
+Measure with: python3 .claude/skills/house-style/scripts/style_metrics.py <file.tex>
+  --gate --sections --genre <G> [--ref <style_ref>]
+Restructuring is authorized: numbers may move from prose into tables or the supplement under
+house-style's "Numbers may move, never change or vanish" rule, with a number ledger.
+Technical precision and the factual guardrails win over style.
+Current style status: <PASS | FAIL: failing bands with values | not yet measured>
+  (from <style_metrics.json>)
+```
+
+**Exceptions.** A band that cannot be met is logged in `pipeline/style_exceptions.md`, one row
+per band: metric, value, band, manuscript path, reason, and the phase that logged it. A
+**genre-inherent** reason (for example, a worked example whose numbers must appear in the text
+for the reader to follow its steps) qualifies for any outcome. A **budget** reason (the band was
+still failing when rounds ran out) qualifies only for VALIDATED_BELOW_TARGET. "The tic checks
+pass" or "the prose uses we" is never a reason.
+
+"**Style OK**" means: every band PASS, or each failing band carries an exception that qualifies
+for the outcome. With `style_gate=off`, style OK is always true, and the measurements are still
+recorded in the state file and the final report.
 
 ---
 
@@ -104,8 +162,8 @@ through files on disk.
               │          │
               │   ┌──────┴──────┐
               │   ▼             ▼
-              │ TARGET       MAX ROUNDS
-              │ REACHED      REACHED
+              │ TARGET +     MAX ROUNDS
+              │ STYLE OK     REACHED
               │   │             │
               │   ▼             ▼
               │ SUCCESS    VALIDATED_
@@ -156,11 +214,13 @@ pipeline/
 │   │   ├── formula_code_audit.md         ← canonical formula↔code audit (paper-modeler-owned)
 │   │   ├── anomaly_log.md                ← canonical anomaly catalog (paper-modeler-owned)
 │   │   └── literature_briefing.md        ← Phase 3 positioning briefing (literature-lead-produced)
+│   ├── style_metrics.json                ← measured style gate on the Phase 3 draft
 │   └── decision_log.md
 ├── phase4_polish/
 │   ├── round_1/
 │   │   ├── manuscript.tex
 │   │   ├── paper_grade.md
+│   │   ├── style_metrics.json            ← measured style gate for this round
 │   │   ├── consistency_report.md         ← consistency-auditor verdict
 │   │   └── venue_compliance.md           ← (if venue_compliance=on)
 │   ├── round_2/
@@ -168,6 +228,7 @@ pipeline/
 │   └── round_N/
 │       └── ...
 ├── MARGINAL_decision_required.md         ← (only on Phase 2 MARGINAL; user fills Decision)
+├── style_exceptions.md                   ← (only if a style band is excepted; one row per band)
 ├── pipeline_log.md                       (append-only master log)
 ├── pipeline_state.md                     (resumable checkpoint)
 └── final_report.md                       (written at pipeline completion)
@@ -452,7 +513,10 @@ Invoke write-manuscript (Task agent) with:
            - pipeline/phase2_validate/validated_code/ (working implementation)
            - pipeline/phase2_validate/validated_results/ (result CSVs and figures)
            - research_brief.md (problem framing, target venue, notation conventions)
-           Write the manuscript to pipeline/phase3_write/"
+           Write the manuscript to pipeline/phase3_write/
+           Draft every section in the house voice from the first draft; do not
+           rely on a late style pass to fix the register.
+           [Style block from §Writing Style Gate, with <G> and the exemplar filled in]"
   Output: pipeline/phase3_write/
 ```
 
@@ -496,6 +560,16 @@ After write-manuscript completes, verify:
 - [ ] `pipeline/phase3_write/figures/` contains at least 2 PDF figures
 - [ ] `pipeline/phase3_write/references.bib` exists with at least 10 entries
 - [ ] `pipeline/phase3_write/data/` contains evaluation result CSVs
+- [ ] Style gate: run the §Writing Style Gate measurement on
+      `pipeline/phase3_write/manuscript.tex`, writing
+      `pipeline/phase3_write/style_metrics.json`. Every band PASS, or each failing band
+      has a genre-inherent exception in `pipeline/style_exceptions.md`.
+
+**If the style gate fails:** re-dispatch write-manuscript with the failing bands and the
+per-section table, instructing it to rerun its F.2b house-style pass in thorough mode with
+restructuring authorized (counts toward `max_phase_retries`). If the gate still fails when
+retries are exhausted, do not stop the pipeline: record the failing bands in
+`pipeline_state.md` as style debt and proceed to Phase 4, which must clear them.
 
 **If any are missing:** Re-dispatch write-manuscript with explicit instruction
 to produce the missing artifact. Increment `phase3_retries`.
@@ -521,19 +595,29 @@ with explicit instruction to include it (counts toward `max_phase_retries`).
 
 ```
 Round 0:
+  Style: use pipeline/phase3_write/style_metrics.json from the Phase 3 gate
   Grade pipeline/phase3_write/manuscript.tex
   If venue_compliance=on: also dispatch venue-compliance-gate
-  If score >= target AND venue_compliance verdict != FAIL: → SUCCESS (skip fixing)
+  If score >= target AND venue_compliance verdict != FAIL AND style OK: → SUCCESS (skip fixing)
 
 For round = 1 to max_polish:
-  1. Fix: dispatch paper-fixer on the grade report (+ venue compliance fixable issues if any)
-  2. Grade: dispatch paper-grader on the fixed manuscript
-  3. If venue_compliance=on: dispatch venue-compliance-gate; if FAIL with non-fixable issues
+  1. Fix: dispatch paper-fixer on the grade report (+ venue compliance fixable issues if any,
+     + the failing style bands; paper-fixer runs its style pass when the gate fails)
+  2. Measure style on the fixed manuscript → round_N/style_metrics.json
+  3. Grade: dispatch paper-grader on the fixed manuscript
+  4. If venue_compliance=on: dispatch venue-compliance-gate; if FAIL with non-fixable issues
      → exit with VALIDATED_BUT_VENUE_NONCOMPLIANT
-  4. If score >= target AND venue compliance OK: → SUCCESS (proceed to Phase 4.5)
-  5. If score < target and rounds remaining: continue
-  6. If max rounds reached: → VALIDATED_BELOW_TARGET (still proceed to Phase 4.5)
+  5. If score >= target AND venue compliance OK AND style OK: → SUCCESS (proceed to Phase 4.5)
+  6. If (score < target OR style not OK) and rounds remaining: continue
+  7. If max rounds reached: → VALIDATED_BELOW_TARGET (still proceed to Phase 4.5)
 ```
+
+**Style at Phase 4 exit.** Both SUCCESS and VALIDATED_BELOW_TARGET require style OK
+(§Writing Style Gate). If the score reaches target but the style gate fails, the round does not
+exit as SUCCESS; it continues while rounds remain. If max rounds are reached with the gate still
+failing, log a budget exception per failing band and exit as VALIDATED_BELOW_TARGET, even when
+the score reached target. Re-measure after the Phase 4.5 fix round, since those fixes also edit
+prose; the final report uses the last measurement.
 
 ### Phase 4 Sub-Gate: Venue Compliance (if `venue_compliance=on`)
 
@@ -560,6 +644,8 @@ Invoke venue-compliance-gate (Task agent) with:
 Invoke paper-grader (Task agent) with:
   prompt: "/paper-grader pipeline/phase3_write/manuscript.tex"
           (or pipeline/phase4_polish/round_N/manuscript.tex for round N)
+          + "Style metrics: <path to style_metrics.json for this manuscript>"
+          + [Style block from §Writing Style Gate]
   Output: pipeline/phase4_polish/round_N/paper_grade.md
 ```
 
@@ -571,7 +657,9 @@ Invoke paper-fixer (Task agent) with:
            Read: pipeline/phase4_polish/round_N/paper_grade.md
            Read: pipeline/phase4_polish/round_N/manuscript.tex
            (or pipeline/phase3_write/manuscript.tex for round 0)
-           Write fixed manuscript to: pipeline/phase4_polish/round_{N+1}/manuscript.tex"
+           Write fixed manuscript to: pipeline/phase4_polish/round_{N+1}/manuscript.tex
+           Style gate status: <PASS | FAIL + failing bands> (round_N/style_metrics.json)
+           [Style block from §Writing Style Gate]"
   Output: pipeline/phase4_polish/round_{N+1}/
 ```
 
@@ -582,6 +670,8 @@ Paper-fixer **MAY** fix:
 - Table incompleteness (missing entries, wrong numbers vs CSV data)
 - Citation formatting issues
 - Clarity improvements (rewriting confusing sentences)
+- House-voice rewrites through house-style (thorough mode) when the style gate fails,
+  including moving numbers from prose into tables under its number-ledger rule
 - Missing figure references or broken cross-references
 - Reproducibility issues (missing seeds, unclear parameter values)
 
@@ -618,8 +708,9 @@ Invoke consistency-auditor (Task agent) with:
 - **Verdict PASS_WITH_WARNINGS** → proceed; copy warnings into `final_report.md`
   under "Residual Issues."
 - **Verdict FAIL** → re-dispatch paper-fixer with `consistency_report.md` as
-  input (counts toward `max_polish + 1` extra "consistency round"). After
-  paper-fixer completes, re-grade and re-audit. If second consistency audit
+  input and the §Writing Style Gate style block (counts toward `max_polish + 1` extra
+  "consistency round"). After paper-fixer completes, re-measure style, re-grade, and
+  re-audit. If second consistency audit
   also FAILs → STOP with outcome `CONSISTENCY_FAILURE`; surface report to user.
 
 `consistency_report.md` is also included in the final_report's "All Files
@@ -675,6 +766,10 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 ## Phase3 Retries: [0/1/2]
 ## Polish Round: [0/1/2/3]
 ## Latest Score: [X/50 or N/A]
+## Style Gate: [PASS | FAIL | N/A] (genre: default | results; bands: default | from <style_ref>)
+- Last measured: [path to style_metrics.json]
+- Failing bands: [metric=value (band), ... or none]
+- Exceptions logged: [N, see pipeline/style_exceptions.md]
 ## Marginal Decision: [N/A | PENDING | PROCEED | RETHINK | STOP]
 
 ## Context for Resume
@@ -687,8 +782,8 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 
 | Outcome | Condition | Action |
 |---------|-----------|--------|
-| **SUCCESS** | Phase 4 reaches target score | Write final report. Pipeline complete. |
-| **VALIDATED_BELOW_TARGET** | Phase 4 exhausts max rounds | Write final report. Method is validated, execution quality below target. |
+| **SUCCESS** | Phase 4 reaches target score and style OK (§Writing Style Gate) | Write final report. Pipeline complete. |
+| **VALIDATED_BELOW_TARGET** | Phase 4 exhausts max rounds, or reaches target with style still failing | Write final report. Method is validated, execution quality below target; style exceptions listed. |
 | **MARGINAL** | Phase 2 returns MARGINAL verdict | Stop. Surface to user for decision. |
 | **NO_GO** | Phase 2 fails after max rethinks | Write honest failure report. |
 | **KILL** | validate-method invokes kill criterion | Write honest failure report. Fundamental limitation identified. |
@@ -737,6 +832,20 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
 - **Final score**: [X/50]
 - **Rounds**: [count]
 - **Issues fixed**: [list]
+
+## Writing Style (measured, if Phase 3 executed)
+Genre: [default | results]. Bands: [default | derived from <style_ref>] (house-style,
+"Measured style gate").
+| Metric | Reference | Phase 3 draft | Final | Band | Final result |
+|--------|-----------|---------------|-------|------|--------------|
+| mean sentence words | | | | | PASS/FAIL |
+| % sentences > 45 words | | | | | |
+| sentences per paragraph | | | | | |
+| "we" per 1k | | | | | |
+| semicolons per 1k | | | | | |
+| numbers per 1k | | | | | |
+| % sentences with > 3 numbers | | | | | |
+- **Exceptions**: [none, or one line per band from style_exceptions.md with its reason]
 
 ## Score Breakdown (if graded)
 | Dimension    | Score |
@@ -796,7 +905,11 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
    the same result. If Phase 2 returns NO-GO, either RETHINK (revise the spec) or
    STOP. Don't retry.
 
-7. **"Let me dispatch Phase 3 sub-agents myself instead of using write-manuscript"** —
+7. **"The tic checks pass, so the house voice passes"** — NO. No em-dashes, "we" present,
+   and correctly spelled defined terms are necessary, not sufficient. The house voice passes
+   only when the measured style gate passes.
+
+8. **"Let me dispatch Phase 3 sub-agents myself instead of using write-manuscript"** —
    NO. Write-manuscript manages its own sub-agents. The pipeline orchestrator dispatches
    phases, not sub-agents of phases. Stay at the right abstraction level.
 
@@ -812,7 +925,7 @@ The orchestrator itself is lightweight. It dispatches phases and checks outputs.
 | Phase 1 dispatch + gate                  | ~5K                 | ~200K (methodology-architect; up to ~250K in revision/RETHINK mode) |
 | Phase 2 dispatch + gate                  | ~5K                 | ~120K (validate-method incl. stress tests)                          |
 | Phase 3 dispatch + gate                  | ~5K                 | ~250K (write-manuscript orchestrator + 4–7 sub-dispatches)          |
-| Phase 4 loop (per round)                 | ~8K                 | ~120K (grader 80K + fixer 40K)                                      |
+| Phase 4 loop (per round)                 | ~8K                 | ~120K (grader 80K + fixer 40K; +40K when the fixer runs a style pass) |
 | Phase 4.5 dispatch + gate                | ~3K                 | ~30K (consistency-auditor)                                          |
 | Pipeline log + state + report            | ~10K                | —                                                                   |
 | **Orchestrator total** (4 phases + 3 polish rounds) | **~60K**  | —                                                                   |

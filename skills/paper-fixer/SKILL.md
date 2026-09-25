@@ -102,6 +102,25 @@ For each fix:
    - For cross-ref fixes: verify the `\label` exists
 5. **Record** what was changed in the fix report
 
+### Step 3b: Style Pass (when the style gate fails)
+
+If the grade report or the dispatch prompt shows the measured style gate failing (any
+non-excepted band FAIL; see paper-grader §Measured Style Gate), run house-style on the fixed
+manuscript in the same round, after the content fixes and before the compile check:
+
+1. Read `.claude/skills/house-style/SKILL.md` in full and follow it in thorough mode, with
+   `--relocate-numbers` and the `--genre` and `--ref` values from the dispatch prompt.
+   Restructuring is authorized by the pipeline: numbers may move from prose into tables or
+   the supplement under its number-ledger rule and never change or vanish.
+2. Start with the sections that the `--sections` table shows furthest out of band.
+3. Re-measure:
+   `python3 .claude/skills/house-style/scripts/style_metrics.py <fixed manuscript.tex> --gate --sections --genre <G> [--ref <exemplar>] --json > <round dir>/style_metrics.json`
+4. If the gate still fails, make one more pass on the sections still flagged, then re-measure.
+   Stop there and report the remaining bands; do not game the metric.
+
+The style pass never changes a number, claim, equation, citation, or label beyond what the
+relocation rule allows, and every relocated number is checked against its CSV.
+
 ### Step 4: Compile Check
 
 After all fixes are applied:
@@ -131,6 +150,13 @@ Append to the output or write as a separate file:
 |----|-------|----------------|-----------------|
 | S1 | [description] | Novelty | Phase 1-2 property |
 | S2 | [description] | Impact | Phase 1-2 property |
+
+### Style Gate (if Step 3b ran)
+| Metric | Before | After | Band | Result |
+|--------|--------|-------|------|--------|
+| [one row per banded metric] | | | | PASS/FAIL |
+- Numbers relocated: [N] (ledger: [path or inline])
+- Bands still failing: [list or none]
 
 ### Summary
 - Fixes applied: [N]
@@ -185,6 +211,9 @@ You **MAY** fix:
 10. **Supplementary table references** — main text mentions a supplementary table
     that doesn't exist, or supplementary tables lack inline summaries. Fix.
 
+11. **House-voice rewrite** — when the measured style gate fails, the house-style pass of
+    Step 3b, including moving numbers from prose into tables under its number-ledger rule.
+
 ## Forbidden Fixes (blacklist)
 
 You **MAY NOT**:
@@ -205,7 +234,9 @@ You **MAY NOT**:
 6. **Add new figures or tables** with results not already computed. You may
    reformat existing data into a new table if the data already exists in CSVs.
 
-7. **Delete unfavorable results** or move them to supplementary to hide them.
+7. **Delete unfavorable results** or move them to supplementary to hide them. A style pass
+   may move the *numbers* of an unfavorable result into a table, but the prose must still
+   state the unfavorable finding in the main text.
 
 8. **Increase Monte Carlo budget** to change results.
 
@@ -277,7 +308,8 @@ Paper-fixer is a lightweight agent (~40K tokens per round).
 | Triage + fix list | ~5K |
 | Apply fixes (read sections, edit, verify) | ~15K |
 | Compile + fix report | ~5K |
-| **Total** | **~40K** |
+| Style pass (Step 3b, only when the gate fails) | ~40K |
+| **Total** | **~40K (~80K with a style pass)** |
 
 The pipeline dispatches one paper-fixer per polish round. Each invocation
 is independent — no state carried between rounds.
@@ -293,7 +325,8 @@ is independent — no state carried between rounds.
    The numbers are what they are. Fix transcription errors, not results.
 
 3. **"Let me reorganize the paper structure for better flow"** — Only if the
-   grader explicitly flagged structural issues. Don't refactor unprompted.
+   grader explicitly flagged structural issues, or the style gate fails (Step 3b).
+   Don't refactor unprompted.
 
 4. **"The grader flagged a code audit issue, let me fix the code"** — NO.
    Fix the MANUSCRIPT to match the code (if formula transcription error),
