@@ -96,6 +96,10 @@ source of truth; do not work from memory of it.
    writing, plus the results passage whenever the section reports numbers.
 3. `.claude/skills/house-style/examples/dense-results-paragraph.md` before writing any results
    prose.
+4. `.claude/skills/house-style/SKILL.md`, section "Reader-first voice (what the metrics
+   cannot see)", and `examples/abstract-reader-first.md`. Its rules govern drafting from the
+   first sentence (problem first, plain doing-verbs, no project shorthand, results in words);
+   passing the bands does not show that the voice is right.
 
 **While drafting**, apply the numbers-in-prose rule: each results sentence argues from the one
 or two numbers that carry its point, and at most two or three numbers appear in any prose
@@ -112,7 +116,9 @@ python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> --s
 
 Use the `--genre` and `--ref` values from the dispatch prompt. Hold each section you wrote to
 the per-section self-check in house-style; redraft any section that fails before you return
-(at most two redrafts, then report the remaining gap as a blocker with the numbers). When you
+(at most two redrafts, then report the remaining gap as a blocker with the numbers). Then run
+the reader-first read (house-style §Reader-first voice) on every paragraph you wrote and
+redraft each paragraph that fails. When you
 write the last section of the manuscript, also run with `--gate` and report the
 document-level result. The technical-precision rules and factual guardrails of house-style win
 over every style target.

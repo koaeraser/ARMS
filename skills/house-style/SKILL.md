@@ -35,7 +35,7 @@ exemplar it was meant to match. The gate measures the cadence of the prose direc
 writer can check a draft against a number and not only against a list.
 
 The gate is **necessary, not sufficient**. Passing it does not make prose good; failing it
-means the prose is out of register.
+means the prose is out of register. §Reader-first voice covers what the gate cannot measure.
 
 ## Paths
 
@@ -208,6 +208,76 @@ Fix the register by rewriting, then re-measure.
 
 ---
 
+## Reader-first voice (what the metrics cannot see)
+
+Passing the measured bands is necessary but not sufficient. In practice a manuscript passed
+six of the seven bands, and its author still judged that the abstract read as machine-written.
+The bands measure cadence and density. They cannot see whether a paragraph says what problem
+it addresses, whether its verbs say what the authors do, or whether its terms are words the
+reader already has. The rules below cover that gap, for drafting as well as rewriting, and
+other skills point here instead of restating them. `examples/abstract-reader-first.md` shows
+every rule at work on one synthetic abstract, and its rewritten abstract is the exemplar the
+rules refer to when no `--ref` exemplar is available.
+
+1. **Problem first, then what we do, then what we find.** Each section opens by saying in
+   plain words what question it answers and why the reader cares. Each paragraph opens with a
+   sentence that connects to that purpose, and only then comes the technical content. An
+   introduction that opens on a guideline's line numbers or on a formula has skipped the
+   problem.
+2. **Plain doing-verbs.** Say what the authors do: "we show", "we study", "we propose", "we
+   then examine", "we compare", "we provide". The reader should always know what we are doing
+   and why. A run of sentences whose subjects are results or quantities, with no stated
+   purpose, leaves the reader to reconstruct why each one matters.
+3. **Describe rather than compress.** Name each idea in full words the first time and every
+   time it matters: "when the analysis assumes that the time trend is linear", not "read
+   linearly"; name the quantities instead of "the four variances". Shorthand coined during a
+   project reads as fluent to its writer and as opaque to everyone else. Defined technical
+   terms stay exactly as defined, and each is introduced with a plain phrase before the text
+   relies on it.
+4. **Results in words, numbers only where the argument needs them.** Say what a result means
+   ("the Type I error rate more than triples"), then give at most one or two supporting
+   numbers. This is stricter than the numbers band. An abstract or an introduction usually
+   needs few numbers or none, and a telegraphic list of findings fails this rule even when the
+   count is inside the band. Removed numbers follow the relocation rule in §Hard constraints.
+5. **Few pointers and citations per sentence.** At most one `(Section~\ref{})` or
+   `(Table~\ref{})` pointer per sentence, and only where the reader needs to go there. At most
+   two citation groups per sentence. Related work is narrative prose that groups ideas and
+   says how later work builds on earlier work; a run of sentences that each carry one citation
+   is a list in disguise.
+6. **Quote a source only when its wording matters.** Paraphrase a guideline, regulation, or
+   standard otherwise, and keep the citation. Line or page numbers go inside the citation
+   argument (`\citep[lines 88--91]{guideline}`), never in running text. A quote whose exact
+   wording is load-bearing stays.
+7. **Caveats kept, not defensive.** Load-bearing caveats (non-endorsement by a regulator or
+   sponsor, credit to prior work, limitations, unresolved discrepancies) stay, and each is said
+   once, plainly, where it belongs. A non-endorsement is one short sentence or a footnote.
+   Credit reads "Much of this material restates known results, which we credit where they
+   arise", not an apologetic paragraph placed before the contribution.
+8. **The exemplar cadence.** Each sentence carries one idea, and sentences are joined by lean
+   connectives ("We then", "As a result", "In this case", "To help ..."). A short sentence may
+   mark a turn in the argument, and a long sentence is allowed when it carries one complete
+   argument. There are no fragments and no telegraphic lists of findings, and paragraphs run
+   four to seven sentences. Match the rhythm of the rewritten abstract in the example, and of
+   the abstract and introduction of your `--ref` exemplar when you have one. The bands apply
+   to the whole main text, so an abstract may run longer sentences while the document stays in
+   band.
+
+**The reader-first read.** After the gate passes, read the manuscript paragraph by paragraph
+against the exemplar and ask of each paragraph: does it say what problem it addresses before
+the details? Then check that it says what we do with a plain verb, that a reader outside the
+project would understand every term on first reading, and that it respects rules 4 to 7.
+Revise every paragraph that fails and count them for the report.
+
+**Judge pass (subagent mode).** When the rewrite was split across subagents (§Procedure step
+3), dispatch one fresh agent that wrote none of the sections after reassembly. Give it this
+section, the example, and the reassembled manuscript. It compares each paragraph with the
+exemplar and returns a table of failing paragraphs (location, rule broken, proposed wording);
+it does not edit. The main agent applies or rejects each row with a reason, then reruns the
+integrity check and the gate. The judge runs once per rewrite, so it does not become a critic
+loop.
+
+---
+
 ## AI tics (fix in the same pass)
 
 Flag clusters, never a single defined term. Keep any word that carries technical weight in the
@@ -310,7 +380,9 @@ Use the per-section table to decide where the rewrite must restructure first.
 
 Read three passages of the exemplar before editing: the opening paragraph of its introduction,
 a methods paragraph in which the authors make choices, and the prose that follows its largest
-results table. Match their register. Do not copy their claims, structure, or phrasing.
+results table. Match their register. Do not copy their claims, structure, or phrasing. Also
+read `examples/abstract-reader-first.md`, which is the reader-first exemplar when no `--ref`
+exemplar is given.
 
 ### 3. Plan, then edit
 
@@ -354,6 +426,13 @@ and re-measure once more. If a band still fails after that second pass, stop and
 the reason (for example, numbers that cannot move because relocation was not authorized). Do
 not game the metric.
 
+Then run the **reader-first read** (§Reader-first voice): go paragraph by paragraph against
+the exemplar, ask whether each paragraph says what problem it addresses before the details,
+and revise every paragraph that fails its rules. If subagents did the rewrite, run the
+**judge pass** from that section, apply or reject its rows, and rerun the integrity check and
+the gate. The rewrite is complete only when the gate passes and no paragraph is left failing
+the read. With `--gate-only`, run the read and report its failures without editing.
+
 ### 6. Report
 
 - Edits made, by category (for example, "9 bullet blocks turned into prose, 14 over-long
@@ -362,6 +441,9 @@ not game the metric.
 - The style-gate table before and after: each banded metric with its baseline value, final
   value, band, and PASS/FAIL, plus the genre and calibration used. Name every band still
   failing and why.
+- The reader-first result: paragraphs read, paragraphs revised for each rule of
+  §Reader-first voice, and, if the judge pass ran, its rows applied and rejected (with the
+  reason for each rejection).
 - Paths to the edited file and the snapshot (`style_logs/pre_style.tex` is the rollback).
   If `latexdiff` is available, also produce a tracked-change PDF against the snapshot.
 
@@ -379,4 +461,6 @@ not game the metric.
   table data, math, or section titles.
 - Do **not** describe a manuscript as "in the house voice" while the gate fails, and do not
   treat passing tic checks as evidence that it passes.
+- Do **not** treat passing the bands as proof of the voice. The reader-first read decides
+  whether a paragraph reads as a careful author would write it.
 - Do **not** write toward beating an AI detector. The target is the house voice.

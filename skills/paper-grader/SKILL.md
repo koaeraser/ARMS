@@ -78,8 +78,8 @@ Score each dimension 1-5. Provide a 2-3 sentence justification for each score.
 | 4 | + Strong motivation; precise contribution statement; good flow |
 | 5 | + Elegant exposition; every paragraph earns its place; compelling narrative |
 
-Clarity includes the **measured style gate** (§Measured Style Gate below): apply its cap
-after scoring the anchors above.
+Clarity includes the **measured style gate** and the **reader-first read** (§Measured Style
+Gate below): apply both caps after scoring the anchors above.
 
 ### 5. Novelty (1-5)
 | Score | Meaning |
@@ -187,7 +187,8 @@ The house voice and its bands are defined in `.claude/skills/house-style/SKILL.m
 "Measured style gate"; do not restate or re-derive the bands. Passing the tic checks (no
 em-dashes, "we" present, defined terms used correctly, no stock transitions) is necessary and
 **never sufficient**: it does not by itself mean the house voice passes, and a grade report
-must not say it does.
+must not say it does. Passing the bands is likewise necessary and not sufficient (see
+**Reader-first read** below).
 
 **Measure.** Use the `style_metrics.json` path in the dispatch prompt if one is given.
 Otherwise run the script yourself (it only reads files; print to stdout, write nothing):
@@ -214,6 +215,15 @@ Apply the cap after the anchor score and after any code-audit adjustment; the ca
 score. A band failing by a hair counts as failing; the bands are the contract. F = 0 lifts no
 score by itself: tics, flow-level tells, and structure are still judged by reading, and a
 manuscript inside the bands can still score low on Clarity.
+
+**Reader-first read.** Read the manuscript paragraph by paragraph (at minimum the abstract,
+the introduction, and the opening paragraph of every section) against the rules and exemplar
+in `.claude/skills/house-style/SKILL.md`, section "Reader-first voice (what the metrics cannot
+see)", with `examples/abstract-reader-first.md` as the calibration case. The read fails when
+any paragraph breaks one of those rules (for example, it opens on a formula or a guideline's
+line numbers instead of the problem, or relies on project shorthand). When it fails, Clarity
+cannot score above 3.5, even when F = 0. Report each failing paragraph under "Fixable Issues"
+with its location, the rule broken, and the exact proposed wording.
 
 **Report.** Under the Clarity justification, include the gate table (metric, reference,
 manuscript, band, PASS/FAIL), F, the cap applied, and the two or three sections the
@@ -421,6 +431,7 @@ Style gate (genre: default | results; bands: default | from <exemplar>):
 |--------|-----|------------|------|--------|
 | [one row per banded metric from style_metrics.py] | | | | PASS/FAIL |
 Failing bands not excepted (F): [N]. Cap applied: [none | 4 | 3.5 | 3]. Worst sections: [list]
+Reader-first read: [PASS | FAIL: paragraphs failing, rules broken]. Cap applied: [none | 3.5]
 
 ### 5. Novelty: [score]/5
 [2-3 sentence justification positioning vs reference papers]
