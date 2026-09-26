@@ -2,7 +2,7 @@
 """Measure the prose style of a LaTeX file against a house-voice reference.
 
 Usage: style_metrics.py <file.tex> [--ref <exemplar.tex>] [--json]
-                        [--gate] [--genre default|results] [--sections]
+                        [--compare|--gate] [--genre default|results] [--sections]
                         [--include-appendix]
 
 Only main-text prose paragraphs are measured. The preamble, comments,
@@ -14,18 +14,26 @@ opens with \\paragraph{...}, \\item[...] or \\citet{...} is still measured.
 Inline math and macros collapse to a single token; numbers inside them are
 still counted (except in \\ref, \\cite, \\label and similar keys).
 
---ref       calibrate to your own exemplar paper. The exemplar is measured
-            and the gate bands are derived from it (see derive_bands). Without
-            --ref, the default bands and reference values apply; they were
-            calibrated on an exemplar Statistical Science methods paper
-            (see ../SKILL.md, "Measured style gate").
---gate      compare the target against the bands; print PASS/FAIL per band
-            and exit 2 if any band fails.
---genre     'results' applies the documented relaxation of the two number
-            bands (results-heavy papers: simulation studies, tutorials).
+--ref       compare with your own exemplar paper. The exemplar is measured
+            and its typical ranges are derived from it (see derive_ranges).
+            Without --ref, the default reference values apply; they come from
+            an exemplar Statistical Science methods paper (see ../SKILL.md,
+            "Style metrics (advisory)").
+--compare   print each measured metric next to the exemplar's value with an
+(--gate)    informational note ("above exemplar", "below exemplar", "close
+            to exemplar") and the exemplar's typical range. This is an
+            advisory diagnostic, not a pass/fail check: the script always
+            exits 0 after a successful measurement. --gate is kept as an
+            alias so older calls keep working.
+--genre     'results' widens the typical range shown for the two number
+            metrics (results-heavy papers: simulation studies, tutorials).
 --sections  also print the metrics for every \\section of the target, so a
-            writer can self-check section by section.
+            writer can compare section by section.
 --json      print the same result as JSON.
+
+The standard for the house voice is the exemplar and the reader-first read
+(../SKILL.md), which is a judgement. These numbers help a writer see where a
+draft drifts from the exemplar; they are not limits.
 """
 import json
 import os
@@ -58,9 +66,11 @@ DEFAULT_REFERENCE = {
     "semicolons_per_1k": 2.8,
 }
 
-# Default bands, calibrated on the default exemplar (see SKILL.md).
-# (metric, op, default limit, results-genre limit)
-BANDS = [
+# Typical ranges of the default exemplar (see SKILL.md, "Style metrics
+# (advisory)"). These describe what the exemplar looks like; they are NOT
+# limits, and nothing in this script enforces them.
+# (metric, op, default range, results-genre range)
+REFERENCE_RANGES = [
     ("mean_sentence_words",          "range", (17.0, 24.0), (17.0, 24.0)),
     ("pct_sentences_over_45",        "max",   5.0,          5.0),
     ("sentences_per_paragraph",      "range", (4.0, 7.0),   (4.0, 7.0)),
@@ -69,10 +79,11 @@ BANDS = [
     ("numbers_per_1k",               "max",   10.0,         15.0),
     ("pct_sentences_over_3_numbers", "max",   2.0,          5.0),
 ]
+BANDS = REFERENCE_RANGES   # backward-compatible name; reference values only
 
-# Rules that turn a user-supplied exemplar into bands. The multipliers
-# reproduce the default bands (to rounding) when applied to the default
-# exemplar's values; the floors keep a "max" band from collapsing to zero when
+# Rules that turn a user-supplied exemplar into typical ranges. The multipliers
+# reproduce the default ranges (to rounding) when applied to the default
+# exemplar's values; the floors keep a "max" range from collapsing to zero when
 # the exemplar happens to contain none of a feature.
 # metric: (op, default rule, results-genre rule); a rule is (multiplier, floor)
 # for "max"/"min" and (low mult, high mult) for "range".
@@ -87,10 +98,10 @@ DERIVE = {
 }
 
 
-def derive_bands(ref):
-    """Bands derived from a measured exemplar, in the same shape as BANDS."""
+def derive_ranges(ref):
+    """Typical ranges derived from a measured exemplar, shaped like REFERENCE_RANGES."""
     out = []
-    for key, _, _, _ in BANDS:
+    for key, _, _, _ in REFERENCE_RANGES:
         op, rule_d, rule_r = DERIVE[key]
         v = ref.get(key)
         lims = []
@@ -103,6 +114,9 @@ def derive_bands(ref):
                 lims.append(round(rule[0] * v, 1))
         out.append((key, op, lims[0], lims[1]))
     return out
+
+
+derive_bands = derive_ranges   # backward-compatible name
 
 
 def body(s, include_appendix=False):
@@ -197,20 +211,28 @@ def sections(path, include_appendix=False):
     return [measure(clean(t), name) for name, t in out]
 
 
-def gate(m, genre, bands):
+def compare(m, ref, genre, ranges):
+    """Informational comparison of target metrics with the exemplar. Never fails."""
     rows = []
-    for key, op, dflt, res in bands:
+    for key, op, dflt, res in ranges:
         lim = res if genre == "results" else dflt
-        v = m.get(key)
-        if v is None:
-            ok, band = False, "n/a"
-        elif op == "range":
-            ok, band = lim[0] <= v <= lim[1], "%g-%g" % lim
+        v, e = m.get(key), ref.get(key)
+        if op == "range":
+            typical, outside = "%g-%g" % lim, v is not None and not lim[0] <= v <= lim[1]
         elif op == "max":
-            ok, band = v <= lim, "<= %g" % lim
+            typical, outside = "up to %g" % lim, v is not None and v > lim
         else:
-            ok, band = v >= lim, ">= %g" % lim
-        rows.append({"metric": key, "value": v, "band": band, "pass": ok})
+            typical, outside = "%g or more" % lim, v is not None and v < lim
+        if v is None or e is None:
+            note = "not measured"
+        else:
+            tol = max(0.15 * abs(e), 0.5)
+            note = ("above exemplar" if v > e + tol else
+                    "below exemplar" if v < e - tol else "close to exemplar")
+            if outside:
+                note += "; outside exemplar's typical range"
+        rows.append({"metric": key, "value": v, "exemplar": e,
+                     "typical_range": typical, "note": note})
     return rows
 
 
@@ -227,15 +249,14 @@ def main():
         ref = metrics(ref_path)
         if not ref.get("paragraphs"):
             sys.exit("style_metrics: no prose paragraphs found in reference %s" % ref_path)
-        bands, calibration = derive_bands(ref), "derived from --ref"
+        ranges, calibration = derive_ranges(ref), "derived from --ref"
     else:
-        ref, bands, calibration = DEFAULT_REFERENCE, BANDS, "default"
+        ref, ranges, calibration = DEFAULT_REFERENCE, REFERENCE_RANGES, "default"
     out = {"reference": ref, "target": metrics(target, inc)}
-    if "--gate" in args:
+    if "--compare" in args or "--gate" in args:
         out["genre"] = genre
         out["calibration"] = calibration
-        out["gate"] = gate(out["target"], genre, bands)
-        out["gate_pass"] = all(r["pass"] for r in out["gate"])
+        out["comparison"] = compare(out["target"], ref, genre, ranges)
     if "--sections" in args:
         out["sections"] = sections(target, inc)
     if "--json" in args:
@@ -246,13 +267,16 @@ def main():
         print("%-30s %12s %12s" % ("metric", "reference", "target"))
         for k in keys:
             print("%-30s %12s %12s" % (k, ref.get(k), out["target"].get(k)))
-        if "gate" in out:
-            print("\nStyle gate (genre: %s, bands: %s)" % (genre, calibration))
-            print("%-30s %10s %12s %6s" % ("metric", "target", "band", "result"))
-            for r in out["gate"]:
-                print("%-30s %10s %12s %6s" % (r["metric"], r["value"], r["band"],
-                                               "PASS" if r["pass"] else "FAIL"))
-            print("GATE: %s" % ("PASS" if out["gate_pass"] else "FAIL"))
+        if "comparison" in out:
+            print("\nComparison with exemplar (advisory; genre: %s, ranges: %s)"
+                  % (genre, calibration))
+            print("%-30s %8s %9s %14s  %s" % ("metric", "target", "exemplar",
+                                              "typical range", "note"))
+            for r in out["comparison"]:
+                print("%-30s %8s %9s %14s  %s" % (r["metric"], r["value"], r["exemplar"],
+                                                  r["typical_range"], r["note"]))
+            print("These are diagnostics, not limits. The standard is the exemplar and the "
+                  "reader-first read (SKILL.md).")
         if "sections" in out:
             cols = ["prose_words", "mean_sentence_words", "pct_sentences_over_45",
                     "sentences_per_paragraph", "numbers_per_1k", "pct_sentences_over_3_numbers",
@@ -261,8 +285,6 @@ def main():
             for m in out["sections"]:
                 if m.get("paragraphs"):
                     print("%-40s " % m["file"] + " ".join("%7s" % m.get(c) for c in cols))
-    if "gate" in out and not out["gate_pass"]:
-        sys.exit(2)
 
 
 if __name__ == "__main__":

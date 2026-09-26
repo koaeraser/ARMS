@@ -2,9 +2,9 @@
 
 **The problem.** A results paragraph that reads as a table written out in sentences: long
 sentences, several numbers in each, and the argument buried between them. It can pass every tic
-check and still fail the gate.
+check and still read as a results report.
 
-**Maps to.** SKILL.md, "Numbers in prose" and "Measured style gate". This is the paragraph-level
+**Maps to.** SKILL.md, "Numbers in prose" and "Style metrics (advisory)". This is the paragraph-level
 form of what `scripts/style_metrics.py` measures at document level.
 
 **The fix.** Argue from the one or two numbers that carry each point, and move the rest to a
@@ -102,5 +102,5 @@ coverage and pay for it in width. The rewrite states that point in plain sentenc
 numbers that prove it (the $11\%$ width premium, and the $0.861$ against $0.943$ coverage when
 the tails get heavier), and leaves the settings and secondary comparisons to the table. The
 semicolon hinge is split, and "we" returns where the authors report a finding. A single results
-paragraph may stay above the document band for numbers per 1k (here $63.1$); the band is judged
-over the whole document, and the exemplar's own simulation section reaches $26$.
+paragraph may stay well above the exemplar's typical numbers per 1k (here $63.1$); the
+exemplar's own simulation section reaches $26$, and the metric is a diagnostic, not a limit.

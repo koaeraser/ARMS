@@ -78,8 +78,8 @@ Score each dimension 1-5. Provide a 2-3 sentence justification for each score.
 | 4 | + Strong motivation; precise contribution statement; good flow |
 | 5 | + Elegant exposition; every paragraph earns its place; compelling narrative |
 
-Clarity includes the **measured style gate** and the **reader-first read** (§Measured Style
-Gate below): apply both caps after scoring the anchors above.
+Clarity includes the **reader-first read** (§House Voice below): apply its cap after scoring
+the anchors above.
 
 ### 5. Novelty (1-5)
 | Score | Meaning |
@@ -181,55 +181,44 @@ Weighted total = (Correctness + Completeness + Rigor + Clarity) x 1.0
 Max weighted = 4x5 + 3x10 = 50   (reported as /50)
 ```
 
-## Measured Style Gate (Clarity)
+## House Voice (Clarity)
 
-The house voice and its bands are defined in `.claude/skills/house-style/SKILL.md`, section
-"Measured style gate"; do not restate or re-derive the bands. Passing the tic checks (no
-em-dashes, "we" present, defined terms used correctly, no stock transitions) is necessary and
-**never sufficient**: it does not by itself mean the house voice passes, and a grade report
-must not say it does. Passing the bands is likewise necessary and not sufficient (see
-**Reader-first read** below).
-
-**Measure.** Use the `style_metrics.json` path in the dispatch prompt if one is given.
-Otherwise run the script yourself (it only reads files; print to stdout, write nothing):
-
-```sh
-python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> --gate --sections --genre <G> [--ref <exemplar>]
-```
-
-with `<G>` and the exemplar taken from the dispatch prompt (default: `--genre default`, no
-`--ref`). Read `pipeline/style_exceptions.md` if it exists. A failing band counts as
-**excepted** only when its exception row gives a genre-inherent reason; a budget exception
-(rounds ran out) does not lift the cap.
-
-**Cap rule.** Let F be the number of failing bands that are not excepted.
-
-| F | Clarity cap |
-|---|---|
-| 0 | none |
-| 1 | 4 |
-| 2–3 | 3.5 |
-| ≥ 4 | 3 (wrong register: a report, not the house voice) |
-
-Apply the cap after the anchor score and after any code-audit adjustment; the cap only lowers a
-score. A band failing by a hair counts as failing; the bands are the contract. F = 0 lifts no
-score by itself: tics, flow-level tells, and structure are still judged by reading, and a
-manuscript inside the bands can still score low on Clarity.
+The house voice is defined in `.claude/skills/house-style/SKILL.md`, sections "The house voice"
+and "Reader-first voice (what the metrics cannot see)", with `examples/abstract-reader-first.md`
+as the reader-first exemplar and the `--ref` exemplar paper when the dispatch names one. The
+standard is the exemplar and the reader-first read, which is a judgement. Passing the tic checks
+(no em-dashes, "we" present, defined terms used correctly, no stock transitions) is necessary
+and **never sufficient**: it does not by itself mean the house voice passes, and a grade report
+must not say it does.
 
 **Reader-first read.** Read the manuscript paragraph by paragraph (at minimum the abstract,
 the introduction, and the opening paragraph of every section) against the rules and exemplar
 in `.claude/skills/house-style/SKILL.md`, section "Reader-first voice (what the metrics cannot
 see)", with `examples/abstract-reader-first.md` as the calibration case. The read fails when
 any paragraph breaks one of those rules (for example, it opens on a formula or a guideline's
-line numbers instead of the problem, or relies on project shorthand). When it fails, Clarity
-cannot score above 3.5, even when F = 0. Report each failing paragraph under "Fixable Issues"
-with its location, the rule broken, and the exact proposed wording.
+line numbers instead of the problem, relies on project shorthand, or lists findings as a
+telegraphic run of numbers). When it fails, Clarity cannot score above 3.5. Apply this cap
+after the anchor score and after any code-audit adjustment; it only lowers a score. Report
+each failing paragraph under "Fixable Issues" with its location, the rule broken, and the exact
+proposed wording.
 
-**Report.** Under the Clarity justification, include the gate table (metric, reference,
-manuscript, band, PASS/FAIL), F, the cap applied, and the two or three sections the
-`--sections` table shows furthest out of band. List every non-excepted failing band under
-"Fixable Issues" with the instruction "run house-style thorough with `--relocate-numbers` on
-the flagged sections".
+**Advisory metrics (optional).** Use the `style_metrics.json` path in the dispatch prompt if
+one is given, or run the script yourself (it only reads files; print to stdout, write
+nothing):
+
+```sh
+python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> --compare --sections --genre <G> [--ref <exemplar>]
+```
+
+with `<G>` and the exemplar taken from the dispatch prompt (default: `--genre default`, no
+`--ref`). It prints each metric beside the exemplar's value (house-style "Style metrics
+(advisory)"). The numbers are diagnostics, not limits, and no score or cap is derived from
+them. They may help locate paragraphs to read closely, and a large departure (for example,
+many numbers per sentence across a results section) can support a reader-first finding you
+have made by reading, but never replace it.
+
+**Report.** Under the Clarity justification, give the reader-first result and, if you
+consulted the metrics, the comparison with the exemplar as information.
 
 ## Phase B: Evaluation Code Audit
 
@@ -426,12 +415,11 @@ After the Code Auditor returns its report:
 
 ### 4. Clarity: [score]/5
 [2-3 sentence justification]
-Style gate (genre: default | results; bands: default | from <exemplar>):
-| Metric | Ref | Manuscript | Band | Result |
-|--------|-----|------------|------|--------|
-| [one row per banded metric from style_metrics.py] | | | | PASS/FAIL |
-Failing bands not excepted (F): [N]. Cap applied: [none | 4 | 3.5 | 3]. Worst sections: [list]
 Reader-first read: [PASS | FAIL: paragraphs failing, rules broken]. Cap applied: [none | 3.5]
+Advisory metrics vs. exemplar (if consulted; genre default | results; exemplar default | <exemplar>; information only):
+| Metric | Exemplar | Manuscript | Note |
+|--------|----------|------------|------|
+| [one row per metric from style_metrics.py --compare] | | | above / below / close to exemplar |
 
 ### 5. Novelty: [score]/5
 [2-3 sentence justification positioning vs reference papers]

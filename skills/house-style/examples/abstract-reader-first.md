@@ -1,6 +1,6 @@
 # Example: abstract that passes the metrics and still reads as generated
 
-**The problem.** The prose passes the measured bands and every tic check, yet a reader finds
+**The problem.** The prose sits close to the exemplar's metrics and passes every tic check, yet a reader finds
 it hard to follow and its author would not have written it. It opens on a rule instead of the
 problem, its sentences state findings without saying what the authors did, it compresses ideas
 into shorthand coined during the project, and it lists results with numbers in clipped
@@ -70,8 +70,7 @@ matters, and the meaning of terms such as "read linearly" or "the four variances
 rewrite carries the reader through an argument: the problem, what we study, what we find about
 sample size, what goes wrong under a misspecified trend, how we address it, and what we
 provide. The findings and their calibration are unchanged. The difference lies in the order,
-the verbs, and the vocabulary, none of which the bands measure. The first version averages
-about 18 words per sentence and sits inside the default band; the rewrite averages about 27
-and sits above it, so on a passage this short the band points the wrong way. The bands are
-read over the whole main text, and the reader-first read decides the voice paragraph by
-paragraph.
+the verbs, and the vocabulary, none of which the metrics measure. The first version averages
+about 18 words per sentence and sits inside the exemplar's typical range; the rewrite averages
+about 27 and sits above it, so on this passage the metric points the wrong way. This is why
+the metrics are advisory: the reader-first read decides the voice paragraph by paragraph.

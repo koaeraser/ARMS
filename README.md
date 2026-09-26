@@ -1,6 +1,6 @@
 # ARMS: Autonomous Research Manuscript Skills
 
-A system of 13 coordinated [Claude Code](https://claude.com/claude-code) skills that automate the full lifecycle of a research methodology paper — from idea to a polished, adversarially revised manuscript. Twelve skills form the autonomous pipeline, including **House Style**, a measured writing-style gate that the writing and polishing phases must pass; the thirteenth, the **Critic-Revisor**, is an optional adversarial-revision layer that runs on the resulting draft. **Domain-agnostic**: all domain knowledge lives in the research brief, not in the skills.
+A system of 13 coordinated [Claude Code](https://claude.com/claude-code) skills that automate the full lifecycle of a research methodology paper — from idea to a polished, adversarially revised manuscript. Twelve skills form the autonomous pipeline, including **House Style**, an exemplar-based house voice judged by a reader-first read, with advisory style metrics; the thirteenth, the **Critic-Revisor**, is an optional adversarial-revision layer that runs on the resulting draft. **Domain-agnostic**: all domain knowledge lives in the research brief, not in the skills.
 
 ## Quick Start
 
@@ -33,8 +33,8 @@ research-pipeline (outer orchestrator)
 │   ├── paper-modeler
 │   ├── paper-writer
 │   ├── paper-critic
-│   └── house-style    (final style pass + style gate)
-├── Phase 4: POLISH    → paper-grader + paper-fixer (+ house-style when the gate fails)
+│   └── house-style    (final house-voice pass, judged against the exemplar)
+├── Phase 4: POLISH    → paper-grader + paper-fixer (+ house-style for flagged paragraphs)
 └── Augmentation       → critic-revisor (adversarial review + Codex revision)
 ```
 
@@ -46,8 +46,7 @@ The **critic-revisor** is an optional adversarial-revision layer that runs *afte
 
 - **Phase 0 → Phase 1:** If the input brief has fewer than 5 of 9 required sections, the brief-expander auto-generates a complete brief via web search and literature review (~45 min).
 - **Phase 2 → Phase 1 (RETHINK):** If validation fails, the failure diagnosis feeds back to the methodology architect. Max 2 rethink cycles.
-- **Phase 3 → Phase 4 (style gate):** The draft must pass the [measured style gate](#measured-style-gate), or Phase 3 is re-dispatched for a style pass. If retries run out, the failing bands carry into Phase 4 as style debt.
-- **Phase 4 (POLISH loop):** Grade → fix → re-grade, up to 3 rounds. Fixes are restricted to **execution quality only** (formulas, tables, citations, clarity, house voice) — not methodology. The loop exits as SUCCESS only when the score reaches target *and* the style gate passes.
+- **Phase 4 (POLISH loop):** Grade → fix → re-grade, up to 3 rounds. Fixes are restricted to **execution quality only** (formulas, tables, citations, clarity, house voice) — not methodology. The loop exits as SUCCESS when the score reaches target; the house voice enters through the grader's reader-first read of Clarity (see [Style metrics and the reader-first standard](#style-metrics-advisory-and-the-reader-first-standard)).
 - **Kill criteria:** The system can honestly report failure (NO-GO, KILL) rather than producing a paper about a method that doesn't work.
 
 ## The 12 Pipeline Skills
@@ -64,7 +63,7 @@ These twelve skills form the autonomous pipeline (the thirteenth, the Critic-Rev
 
 | Skill | Role | Lines |
 |-------|------|-------|
-| **`research-pipeline`** | Outer orchestrator. Manages the phase flow, checks phase gates, handles RETHINK loops, runs the style gate, writes pipeline logs. Does no research itself. | 963 |
+| **`research-pipeline`** | Outer orchestrator. Manages the phase flow, checks phase gates, handles RETHINK loops, writes pipeline logs. Does no research itself. | 942 |
 | **`methodology-architect`** | Senior researcher agent. Reads literature (via parallel subagent readers), reasons about method combinations using a Provides/Needs matrix, stress-tests candidates, assesses societal impact, and produces a formal methodology specification. Includes a "wildcard search" phase that looks in adjacent fields for importable ideas. | 766 |
 
 ### Phase 2: VALIDATE
@@ -77,48 +76,52 @@ These twelve skills form the autonomous pipeline (the thirteenth, the Critic-Rev
 
 | Skill | Role | Lines |
 |-------|------|-------|
-| **`write-manuscript`** | Manuscript orchestrator. Plans production evaluations, dispatches sub-agents in sequence (literature → modeling → writing → critique), enforces scope constraints. Ends with a house-style pass; reports `STYLE_GATE_FAIL` if the gate still fails. The method is validated; its job is exposition, not discovery. | 651 |
+| **`write-manuscript`** | Manuscript orchestrator. Plans production evaluations, dispatches sub-agents in sequence (literature → modeling → writing → critique), enforces scope constraints. Ends with a house-style pass judged against the exemplar by the reader-first read. The method is validated; its job is exposition, not discovery. | 656 |
 | **`literature-lead`** | Coordinates parallel paper readers for a **writing-focused** review (positioning and citations, not method design). Produces a synthesized briefing with comparative tables, gap analysis, and a draft Related Work section. | 370 |
 | **`paper-modeler`** | Scales validated code to production quality. Runs formula-code consistency checks, generates PDF figures, and produces a modeling briefing. Computational budgets configurable via research brief. Reuses Phase 2 code — extends, doesn't rewrite. | 315 |
-| **`paper-writer`** | Writes LaTeX manuscript sections one at a time. Includes mandatory protocols: anomaly detection (scan all results for unexplained patterns), claim-vs-data verification (every interpretive claim checked against CSVs), and ablation interpretation. Drafts in the house voice from the first draft and self-checks each section against the style gate. | 444 |
-| **`paper-critic`** | Adversarial reviewer (up to 3 rounds). Severity-based escalation: Critical issues must be fixed, Major issues should be fixed, Minor issues are logged. Scope-limited to exposition quality — cannot re-litigate validated methodology. Reports style conformance as a minor dimension. | 189 |
+| **`paper-writer`** | Writes LaTeX manuscript sections one at a time. Includes mandatory protocols: anomaly detection (scan all results for unexplained patterns), claim-vs-data verification (every interpretive claim checked against CSVs), and ablation interpretation. Drafts in the house voice from the first draft and checks each section against the exemplar with the reader-first read. | 449 |
+| **`paper-critic`** | Adversarial reviewer (up to 3 rounds). Severity-based escalation: Critical issues must be fixed, Major issues should be fixed, Minor issues are logged. Scope-limited to exposition quality — cannot re-litigate validated methodology. Reports house-voice problems found by the reader-first read as a minor dimension. | 194 |
 
 ### Phase 4: POLISH
 
 | Skill | Role | Lines |
 |-------|------|-------|
-| **`paper-grader`** | Reviewer agent. Scores the manuscript on 7 dimensions (Correctness, Completeness, Rigor, Clarity, Novelty, Impact, Performance) using a calibrated rubric. Dispatches a code auditor subagent for computational correctness checks. Research dimensions (Novelty, Impact, Performance) carry 2x weight. Max score: 50. Caps Clarity by the number of failing style bands. | 524 |
-| **`paper-fixer`** | Copy-editor agent. Applies targeted fixes from the grade report. Strict whitelist/blacklist: may fix formula transcription errors, table mismatches, broken references, and clarity issues. May NOT change methodology, re-run experiments, delete unfavorable results, or add new evaluations. Runs a house-style pass when the style gate fails. | 341 |
+| **`paper-grader`** | Reviewer agent. Scores the manuscript on 7 dimensions (Correctness, Completeness, Rigor, Clarity, Novelty, Impact, Performance) using a calibrated rubric. Dispatches a code auditor subagent for computational correctness checks. Research dimensions (Novelty, Impact, Performance) carry 2x weight. Max score: 50. Caps Clarity at 3.5 when the reader-first read fails. | 523 |
+| **`paper-fixer`** | Copy-editor agent. Applies targeted fixes from the grade report. Strict whitelist/blacklist: may fix formula transcription errors, table mismatches, broken references, and clarity issues. May NOT change methodology, re-run experiments, delete unfavorable results, or add new evaluations. Rewrites the paragraphs the reader-first read flags through house-style. | 346 |
 
 ### Phases 3–4: STYLE (shared)
 
 | Skill | Role | Lines |
 |-------|------|-------|
-| **`house-style`** | Measured style gate and house-voice rewrite. `scripts/style_metrics.py` measures the cadence of the main-text prose against bands calibrated on an exemplar paper (yours, via `--ref`); the skill rewrites a manuscript into that voice without changing its numbers, claims, citations, or defined terms. Used by write-manuscript, paper-writer, paper-grader, paper-fixer, and paper-critic; also runs standalone as `/house-style`. | 382 |
+| **`house-style`** | Exemplar-based house voice. The standard is the exemplar and a reader-first read (problem first, plain doing-verbs, no project shorthand, results in words); the skill rewrites a manuscript into that voice without changing its numbers, claims, citations, or defined terms. `scripts/style_metrics.py` prints advisory cadence metrics beside the exemplar's values (yours, via `--ref`). Used by write-manuscript, paper-writer, paper-grader, paper-fixer, and paper-critic; also runs standalone as `/house-style`. | 460 |
 
-## Measured Style Gate
+## Style Metrics (Advisory) and the Reader-First Standard
 
-AI-drafted manuscripts can pass every tic check (no em-dashes, no "Furthermore", first-person "we" present) and still read as a results report: long, over-packed sentences, one-point paragraphs, and results written out as rows of numbers. In one run, a manuscript that cleared every tic check averaged 30 words per sentence and 40 numbers per 1,000 prose words, against 19 and 8 for the exemplar it was meant to match. The style gate measures the register directly, so Phase 3 and Phase 4 are held to a number and not only to a checklist.
+AI-drafted manuscripts can pass every tic check (no em-dashes, no "Furthermore", first-person "we" present) and still read as a results report: long, over-packed sentences, one-point paragraphs, findings written out as rows of numbers, and shorthand coined during the project. The **standard** for the house voice is an approved exemplar and a **reader-first read**: each paragraph says what problem it addresses before the details, says what the authors do with a plain verb, uses terms a reader outside the project already has, and states results in words with only the numbers the argument needs. This is a judgement, made by the writer, the grader, and a judge pass after a rewrite. Writing is adaptive, so no metric value passes or fails a manuscript.
+
+The **advisory style metrics** help a writer see where a draft drifts from the exemplar:
 
 ```bash
-python3 skills/house-style/scripts/style_metrics.py manuscript.tex --gate --sections [--genre results] [--ref exemplar.tex]
+python3 skills/house-style/scripts/style_metrics.py manuscript.tex --compare --sections [--genre results] [--ref exemplar.tex]
 ```
 
-The script reads only the main-text prose paragraphs (it drops the preamble, floats, display math, theorem-like environments, proofs, and everything after the appendix or bibliography) and reports seven banded metrics. `--gate` exits 2 if any band fails, `--sections` adds a per-section table for locating the problem, and `--json` gives machine-readable output. The default bands were calibrated on an exemplar *Statistical Science* methods paper:
+The script reads only the main-text prose paragraphs (it drops the preamble, floats, display math, theorem-like environments, proofs, and everything after the appendix or bibliography) and prints seven metrics beside the exemplar's values, each with a note such as "above exemplar" or "close to exemplar". It always exits 0 (`--gate` is kept as an alias of `--compare`). `--sections` adds a per-section table and `--json` gives machine-readable output. The default reference values come from an exemplar *Statistical Science* methods paper; they describe what the exemplar looks like and are not limits:
 
-| Metric | Exemplar | Band |
-|--------|----------|------|
-| Mean sentence length (words) | 19.0 | 17–24 |
-| Sentences over 45 words | 1.8% | ≤ 5% |
-| Sentences per paragraph | 5.3 | 4–7 |
-| "we" per 1,000 words | 11.4 | ≥ 7 |
-| Semicolons per 1,000 words | 2.8 | ≤ 3.5 |
-| Numbers per 1,000 words | 8.0 | ≤ 10 (≤ 15 with `--genre results`) |
-| Sentences with more than 3 numbers | 1.2% | ≤ 2% (≤ 5% with `--genre results`) |
+| Metric | Exemplar | Typical range in the exemplar |
+|--------|----------|-------------------------------|
+| Mean sentence length (words) | 19.0 | about 17–24 |
+| Sentences over 45 words | 1.8% | up to about 5% |
+| Sentences per paragraph | 5.3 | about 4–7 |
+| "we" per 1,000 words | 11.4 | 7 or more |
+| Semicolons per 1,000 words | 2.8 | up to about 3.5 |
+| Numbers per 1,000 words | 8.0 | up to about 10 (about 15 with `--genre results`) |
+| Sentences with more than 3 numbers | 1.2% | up to about 2% (about 5% with `--genre results`) |
 
-**Calibrate it to your own voice.** The exemplar behind the defaults is not distributed. To target another venue, field, or lab style, choose a published paper whose prose you want to match, place its LaTeX source at `reference/style_exemplar.tex` in your project (research-pipeline picks it up automatically through its `style_ref` argument), or pass it directly with `--ref`. The script then derives the bands from your exemplar with fixed rules that reproduce the default bands when applied to the default exemplar. An exemplar written in impersonal voice yields a "we" band near zero, so the gate does not impose first-person prose on a field that avoids it.
+A passage may depart from these values when its argument calls for it: the approved reader-first exemplar abstract averages about 27 words per sentence.
 
-**How the pipeline uses it.** paper-writer self-checks each section as it drafts; write-manuscript ends Phase 3 with a house-style pass and reports `STYLE_GATE_FAIL` if the gate still fails; the Phase 3 gate re-dispatches once for a style pass; paper-grader caps Clarity at 4, 3.5, or 3 as one, two to three, or four or more bands fail; paper-fixer runs a style pass whenever the gate fails; and Phase 4 exits as SUCCESS only when the score reaches target and the gate passes. Numbers may move from prose into tables during a style pass, but never change or disappear: every move is recorded in a number ledger and checked against the result CSVs. Pass `style_gate=off` to measure and report without enforcing.
+**Compare with your own voice.** The exemplar behind the defaults is not distributed. To target another venue, field, or lab style, choose a published paper whose prose you want to match, place its LaTeX source at `reference/style_exemplar.tex` in your project (research-pipeline picks it up automatically through its `style_ref` argument), or pass it directly with `--ref`. Writers and graders then read it for register, and the script compares against its measured values. An exemplar written in impersonal voice has a low "we" rate, so the comparison does not push first-person prose on a field that avoids it.
+
+**How the pipeline uses it.** paper-writer drafts in the house voice and checks each section against the exemplar with the reader-first read; write-manuscript ends Phase 3 with a house-style pass and a judge pass; paper-grader caps Clarity at 3.5 when the reader-first read fails; paper-fixer rewrites the paragraphs the grader flags; paper-critic reports house-voice problems as a minor dimension. Any of them may consult the metrics as a comparison, and none derives a gate, cap, or retry from them. Numbers may move from prose into tables during a rewrite, but never change or disappear: every move is recorded in a number ledger and checked against the result CSVs.
 
 ## Augmentation: Adversarial Critic-Revisor
 
@@ -155,7 +158,7 @@ A simple write-grade-fix loop plateaus at ~65-75% of target quality because the 
 4. **Honest failure as a first-class outcome.** The pipeline has 6 possible outcomes, 4 of which are graceful failures.
 5. **Reuse before rewrite.** Phase 3 imports validated code from Phase 2 — extends, doesn't rewrite.
 6. **The Beauvais Rule.** If the method fundamentally doesn't work, stop. Don't iterate past structural limits.
-7. **Measure the voice, not only the tics.** A manuscript passes the house voice only when the measured style gate passes; tic checks are necessary, never sufficient.
+7. **Judge the voice, not only the tics.** The house voice is judged against an exemplar by a reader-first read; tic checks are necessary, never sufficient, and the style metrics are advisory.
 
 ### What Works and What Doesn't (Yet)
 
@@ -203,9 +206,9 @@ ARMS/
 │   ├── paper-critic/SKILL.md              #   Phase 3 sub-agent
 │   ├── paper-grader/SKILL.md              #   Phase 4: POLISH
 │   ├── paper-fixer/SKILL.md               #   Phase 4: POLISH
-│   ├── house-style/                       #   Phases 3–4: measured style gate + house-voice rewrite
+│   ├── house-style/                       #   Phases 3–4: exemplar-based house voice + rewrite
 │   │   ├── SKILL.md
-│   │   ├── scripts/style_metrics.py       #     The style gate (--ref to calibrate on your exemplar)
+│   │   ├── scripts/style_metrics.py       #     Advisory style metrics (--ref to compare with your exemplar)
 │   │   └── examples/                      #     Worked rewrite with a number ledger
 │   └── critic-revisor/                    #   Augmentation: adversarial review loop
 │       ├── SKILL.md                       #     Orchestrator (Opus review, Codex revise)
@@ -258,7 +261,7 @@ Two additional case studies using the biostatistics-specific version of these sk
 
 ## Provenance
 
-Developed March 2026. The v1 system (simple write-grade-fix loop) identified the plateau problem; the v2 system was designed from scratch to address it. The 11 pipeline skills began as a biostatistics-specific pipeline ([ARMS-Biostat](https://github.com/koaeraser/ARMS-Biostat), KG-DAP run 2026-03-23), then were generalized to domain-agnostic form and first released here on 2026-03-24; the conformal prediction case study was produced the same day, as the first test of the generalized skills. The **Critic-Revisor** augmentation (now the 13th skill) was added on 2026-06-10. The **House Style** skill and the measured style gate were added on 2026-09-25, after drafts that passed every tic check were still found to drift from the target voice.
+Developed March 2026. The v1 system (simple write-grade-fix loop) identified the plateau problem; the v2 system was designed from scratch to address it. The 11 pipeline skills began as a biostatistics-specific pipeline ([ARMS-Biostat](https://github.com/koaeraser/ARMS-Biostat), KG-DAP run 2026-03-23), then were generalized to domain-agnostic form and first released here on 2026-03-24; the conformal prediction case study was produced the same day, as the first test of the generalized skills. The **Critic-Revisor** augmentation (now the 13th skill) was added on 2026-06-10. The **House Style** skill was added on 2026-09-25, after drafts that passed every tic check were still found to drift from the target voice. Its style metrics began as enforced bands and were made advisory the same day, when an approved exemplar abstract fell outside the sentence-length band; the exemplar and the reader-first read became the standard.
 
 ## License
 
