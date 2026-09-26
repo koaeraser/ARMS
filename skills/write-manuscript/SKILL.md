@@ -65,6 +65,7 @@ Write to `pipeline/phase3_write/`:
 | **Paper Modeler** | `.claude/skills/paper-modeler/SKILL.md` | Production evaluations, formula verification, figures |
 | **Paper Writer** | `.claude/skills/paper-writer/SKILL.md` | Manuscript sections (LaTeX prose, tables, figure integration) |
 | **Paper Critic** | `.claude/skills/paper-critic/SKILL.md` | Adversarial review (max 3 rounds) |
+| **House Style** | `.claude/skills/house-style/SKILL.md` | Final house-voice pass, judged against the exemplar by the reader-first read (F.2b) |
 
 **CRITICAL**: Before dispatching any sub-agent, read its SKILL.md file and include
 the full content in the Task prompt. Sub-agents have no memory — the prompt IS their
@@ -263,6 +264,15 @@ Log completion in `decision_log.md`.
 Dispatch the Paper Writer in focused section groups. Each dispatch produces one
 section or group of related sections.
 
+**House voice in every writer dispatch.** Append to each D.1–D.4 prompt (and to every fix
+dispatch in Phases E and F) the house-voice style block that research-pipeline passes in its
+Phase 3 prompt (§Writing Style of `research-pipeline/SKILL.md`). If you run standalone
+and no block was passed, build it from that section. The block points the writer to
+`.claude/skills/house-style/SKILL.md` and the exemplar (if any), and gives the `--genre` flag
+`<G>` and the `--ref` exemplar. paper-writer drafts in that voice from the first draft and
+checks each section against the exemplar with the reader-first read, consulting
+`style_metrics.py` as an advisory comparison; see its §House Voice.
+
 ### D.1: Methods + Theoretical Properties
 
 ```
@@ -391,7 +401,14 @@ Invoke paper-writer (Task agent) with:
 
 1. Verify the section was written (read manuscript.tex, check line count)
 2. Check for LaTeX compilation: `pdflatex --draftmode pipeline/phase3_write/manuscript.tex`
-3. Log in `decision_log.md`
+3. Read the writer's `## Style Self-Check` block and skim the new sections against the
+   exemplar (house-style §Reader-first voice). If a section plainly reads as a compressed
+   report (opens on detail instead of the problem, coined shorthand, findings listed with
+   numbers) and the writer did not flag it, re-dispatch the writer once for that section with
+   the paragraphs in question. The advisory comparison
+   (`python3 .claude/skills/house-style/scripts/style_metrics.py pipeline/phase3_write/manuscript.tex --compare --sections --genre <G> [--ref <exemplar>]`)
+   may help locate them; its numbers are not limits.
+4. Log in `decision_log.md`
 
 ---
 
@@ -438,7 +455,10 @@ For round = 1 to 3:
        ## Scope Constraint
        This is Phase 3 critique. Methodology changes are out of scope.
        Focus on: correctness of exposition, completeness of results,
-       clarity of presentation, and citation accuracy."
+       clarity of presentation, and citation accuracy. Style conformance
+       (your Review Dimension 6) is a minor dimension; measure it, do not
+       let it displace correctness findings.
+       [Style block, for the --genre and --ref values]"
 
   2. Read the critic's challenges
 
@@ -487,6 +507,30 @@ Verify each mandate against the manuscript. For any failure:
 
 **Do NOT proceed with a manuscript that has unresolved mandate failures.**
 
+### F.2b House-Voice Pass (last writing step)
+
+After all writing, critique fixes, and mandate fixes, and before final verification, dispatch
+one agent to run house-style on the manuscript:
+
+```
+Invoke a Task agent with:
+  prompt: "[Full content of .claude/skills/house-style/SKILL.md]
+  Run: house-style on pipeline/phase3_write/manuscript.tex --thorough --relocate-numbers
+       --genre <G> [--ref <exemplar>]
+  Restructuring is authorized by write-manuscript: numbers may move from prose into
+  tables or the supplement, with the number ledger, and must never change or vanish.
+  Do not touch table data, equations, labels, citations, or section titles except as the
+  relocation rule allows. Report the advisory style-metrics comparison before and after.
+  The standard is the exemplar: run the reader-first read (and the judge pass if the rewrite
+  was split across subagents) and report the paragraphs revised."
+```
+
+Then recompile, confirm from the number ledger that every relocated number still matches its
+CSV in `data/` and that the integrity check shows no missing or new number, and log the
+before/after reader-first result (and the advisory metrics) in `decision_log.md`. If
+paragraphs still fail the reader-first read, dispatch one more house-style pass restricted to
+those paragraphs. No further passes after that.
+
 ### F.3 Final Verification
 
 - [ ] `manuscript.tex` exists and is >500 lines
@@ -501,6 +545,12 @@ Verify each mandate against the manuscript. For any failure:
 - [ ] MC standard errors present in all Monte Carlo result CSVs
 - [ ] `formula_code_audit.md` exists with zero unresolved MISMATCH rows
 - [ ] `anomaly_log.md` exists; every Type 1–3 anomaly referenced in Discussion
+- [ ] F.2b ran, and its reader-first read is logged. Record the advisory comparison for the
+      pipeline report: `python3 .claude/skills/house-style/scripts/style_metrics.py
+      pipeline/phase3_write/manuscript.tex --compare --sections --genre <G> [--ref <exemplar>]
+      --json > pipeline/phase3_write/style_metrics.json`. The metrics are information, not a
+      check that passes or fails. Report any paragraphs still flagged by the reader-first
+      read to the pipeline.
 
 ### F.4 Write Final Decision Log
 
@@ -513,6 +563,7 @@ Append to `decision_log.md`:
 - Final verification: [all checks passed / issues: ...]
 - Total sub-agent dispatches: [N]
 - Critique rounds completed: [N]
+- House voice: reader-first read [PASS | N paragraphs still flagged]; advisory metrics vs. exemplar (before F.2b → after F.2b)
 - Known limitations: [list or "none"]
 ---
 ```
@@ -531,6 +582,7 @@ Append to `decision_log.md`:
 - Run anomaly detection protocol on all results
 - Run claim-vs-data verification protocol
 - Report unfavorable results honestly
+- Draft in the house voice and finish with the F.2b house-style pass, judged against the exemplar by the reader-first read
 
 ### MUST NOT do
 
@@ -558,7 +610,7 @@ not optimization of results.
 | Phase C (production evals) | ~5K | ~50K |
 | Phase D (4 writer dispatches) | ~15K | ~40K total |
 | Phase E (critique, up to 3 rounds) | ~10K | ~30K total |
-| Phase F (finalization) | ~10K | — |
+| Phase F (finalization, incl. F.2b house-voice pass) | ~10K | ~60K (house-style) |
 | **Orchestrator total** | **~55K** | — |
 
 The orchestrator should comfortably fit in a single context window.
@@ -598,3 +650,7 @@ Each sub-agent runs in its own context via Task tool dispatch.
 
 7. **"I'll implement the comparator differently for a fairer comparison"** — NO.
    Use the comparator from Phase 2's validated code. Fairness was Phase 2's job.
+
+8. **"No em-dashes and the prose says 'we', so the voice is fine"** — NO. Tic checks
+   are necessary, not sufficient. The house voice passes only when the measured style
+   gate passes.

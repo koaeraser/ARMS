@@ -72,12 +72,55 @@ what you investigated in the decision log.
 2. **Read input materials.** Before writing a results section, read the
    relevant CSV files in `data/` and figures in `figures/`. Before writing
    introduction, read the literature briefing.
-3. **Match the voice.** Academic, precise, third-person. Avoid hedging language
-   ("might", "could possibly"). State results directly.
+3. **Write in the house voice from the first draft** (see §House Voice below):
+   first-person plural where the authors choose, compute, assume, or argue (or the
+   exemplar's person, if the dispatch names an exemplar that writes impersonally);
+   measured hedging only; results stated directly. Do not draft in a report register and
+   leave the voice to a later style pass.
 4. **Cite properly.** Use citation format appropriate for the target venue as
    specified in the research brief. Check existing bibliography entries.
 5. **Cross-reference.** Use `\label` and `\ref` for equations, tables, figures,
    sections. Never hard-code numbers.
+
+## House Voice (MANDATORY, from the first draft)
+
+The target is the house voice defined in `.claude/skills/house-style/SKILL.md`, its single
+source of truth; do not work from memory of it.
+
+**Before writing any prose**, read:
+1. `.claude/skills/house-style/SKILL.md`, sections "The house voice" (including the numbers-in-
+   prose guidance), "Style metrics (advisory)", "AI tics", and "Hard constraints".
+2. If the dispatch names an exemplar (`--ref`), the three passages house-style §Procedure
+   step 2 lists. Read at least the passage that matches the register of the section you are
+   writing, plus the results passage whenever the section reports numbers.
+3. `.claude/skills/house-style/examples/dense-results-paragraph.md` before writing any results
+   prose.
+4. `.claude/skills/house-style/SKILL.md`, section "Reader-first voice (what the metrics
+   cannot see)", and `examples/abstract-reader-first.md`. Its rules govern drafting from the
+   first sentence (problem first, plain doing-verbs, no project shorthand, results in words).
+   This section and its exemplar are the standard; the metrics are only a comparison.
+
+**While drafting**, apply the numbers-in-prose guidance: each results sentence argues from the
+one or two numbers that carry its point (the exemplar rarely puts more than two or three in a
+sentence). The complete set of numbers goes into the tables, which stay exact and
+CSV-traceable (Data Provenance Rule); the prose points to the table. Aim for the exemplar's
+cadence: sentences short-to-medium with an occasional longer one that carries one argument,
+over-packed or semicolon-chained sentences split, and paragraphs that develop one argument over
+several sentences. These describe the exemplar; they are not limits, and the passage decides.
+
+**Before returning**, run the reader-first read (house-style §Reader-first voice) on every
+paragraph you wrote, comparing it with the exemplar, and redraft each paragraph that fails (at
+most two redrafts, then report what remains as a blocker). You may consult the advisory
+comparison with the exemplar:
+
+```sh
+python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> --compare --sections [--genre results] [--ref <exemplar>]
+```
+
+Use the `--genre` and `--ref` values from the dispatch prompt. Compare with the exemplar and
+use judgement: a section far from the exemplar is worth rereading, but no metric value
+requires a redraft by itself. The technical-precision rules and factual guardrails of
+house-style win over every style consideration.
 
 ## LaTeX Conventions
 
@@ -109,8 +152,8 @@ deferred table in the main text: "The sensitivity of results to [X] is
 examined in Supplementary Table~SX, which shows [1-sentence summary]."
 
 **Supplementary summary pattern**: When deferring a table, include a
-1-sentence inline summary in the main text with key numbers and a reference
-to the supplementary table.
+1-sentence inline summary in the main text with the one or two numbers that
+carry its point and a reference to the supplementary table.
 
 ### Figure Placement Policy (MANDATORY)
 
@@ -124,7 +167,7 @@ plots, sensitivity heatmaps, per-case scatter plots.
 
 ### Abstract (~200 words)
 
-Problem -> Gap -> Method -> Key results (with numbers) -> Conclusion
+Problem -> Gap -> Method -> Key results (in words, with only the one or two numbers that carry the point) -> Conclusion
 
 **Numerical precision rule**: Use RANGES (e.g., "2-6%") rather than single
 averaged values (e.g., "5.5%") unless the averaging method is explicitly
@@ -180,7 +223,9 @@ Procedure:
 
 - Lead with the main finding, then supporting details
 - Every table/figure must be discussed in text
-- Report exact numbers with proper attribution to the method, metric, and baseline
+- Report exact numbers with proper attribution to the method, metric, and baseline.
+  The tables carry the full set; the prose argues from the one or two numbers that
+  carry each point (numbers-in-prose rule, §House Voice)
 - Compare methods fairly — note where competitors win too
 - Follow table placement policy (main text vs supplementary)
 
@@ -380,6 +425,11 @@ Before finalizing any section:
 ## Claim Verification (if Results/Discussion was written)
 [from the claim-vs-data protocol]
 
+## Style Self-Check
+[reader-first read result for the section(s) written (paragraphs redrafted and the rule
+each broke), and, if consulted, the style_metrics.py --compare --sections rows beside the
+exemplar values as information]
+
 ## Blockers
 [Anything that couldn't be completed. "None" if clean.]
 ```
@@ -394,5 +444,6 @@ Before finalizing any section:
 - If you need results that don't exist yet, note it as a blocker
 - Keep consistent notation with existing manuscript content
 - Compile with `pdflatex --draftmode` after writing to verify no LaTeX errors
+- Run the reader-first read against the exemplar (§House Voice) before returning; a section with paragraphs that fail it is not finished
 - When equations and code disagree, do not default to either side. Read paper-modeler's reconciliation in `formula_code_audit.md`. Either side may carry the bug; the Reconciled LaTeX column captures the intended object after investigation
 - Always activate the venv if you need to run any code: `source .venv/bin/activate`

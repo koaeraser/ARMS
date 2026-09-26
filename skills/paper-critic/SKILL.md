@@ -56,6 +56,24 @@ When reviewing manuscript sections, compare against reference papers:
 - Is there a dataset or scenario where the comparator would win?
 - Are edge cases handled (degenerate inputs, boundary conditions, extreme values)?
 
+### 6. House Voice (minor dimension)
+- Read the abstract, the introduction, and the opening paragraph of each section against the
+  exemplar and the rules in `.claude/skills/house-style/SKILL.md`, "Reader-first voice (what
+  the metrics cannot see)" (exemplar: `examples/abstract-reader-first.md`, and the `--ref`
+  exemplar when the dispatch names one); do not restate them. The standard is that
+  reader-first read, which is a judgement.
+- Optionally consult the advisory comparison with the exemplar (read-only, stdout only):
+  `python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> --compare --sections --genre <G> [--ref <exemplar>]`
+  (`<G>` and the exemplar from the dispatch prompt; default `--genre default`, no `--ref`).
+  Its numbers are diagnostics, not limits; never raise a challenge on a metric value alone.
+- Report the paragraphs that fail the read, with the rule each breaks. Tic checks passing is
+  not evidence that the voice passes.
+- This dimension ranks below dimensions 1–5. Severity is **Minor**, or **Major** only when the
+  read shows the prose is in a report register throughout (most paragraphs open on detail
+  instead of the problem, or list findings as runs of numbers); never Critical. It takes at
+  most one of the five challenge slots, and only when fewer than five substantive challenges
+  exist; otherwise add it as a one-line note after the challenges. `Affected: Clarity`.
+
 ---
 
 ## Severity Definitions
@@ -154,7 +172,8 @@ pipeline final report."
 - **Every challenge must cite specific evidence**: line numbers, numerical
   values, reference paper section numbers. No vague concerns.
 - **Do NOT raise style/formatting issues** unless they genuinely affect clarity
-  or correctness.
+  or correctness. The house-voice read (Review Dimension 6) is the one standing
+  exception, at the severity it defines.
 - **Do NOT manufacture problems.** If the deliverable is correct and complete,
   say: "No critical or major issues found. [Optional minor observations.]"
 - **Tag each challenge with affected grader dimension(s)** using the crosswalk

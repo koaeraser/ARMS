@@ -49,8 +49,58 @@ through files on disk.
 | `max_rethinks` | Maximum Phase 1↔Phase 2 RETHINK cycles | 2 |
 | `max_phase_retries` | Max times to re-dispatch a single phase agent on gate failure | 2 |
 | `venue_compliance` | Run venue-compliance-gate inside Phase 4 (`on` / `off`). Default `off` so drafting is not bottlenecked by formatting limits — turn on at submission time, when a target venue has been chosen. | off |
+| `style_ref` | Exemplar paper (`.tex`) whose prose the manuscript should match; writers and graders read it, and the advisory style metrics compare against it. See house-style §Comparing with your own exemplar. | `reference/style_exemplar.tex` if it exists, else the default exemplar values |
+| `style_genre` | `results` for results-heavy manuscripts (simulation studies, tutorials, case-study reports), which widens the typical range the advisory metrics show for numbers; otherwise `default`. | default |
 
 **User-invocable.** This is the top-level entry point for autonomous paper production.
+
+---
+
+## Writing Style (house voice)
+
+Manuscripts leave this pipeline in the house voice defined by the `house-style` skill. Tic
+checks alone do not deliver it: a manuscript can pass every tic check (no em-dashes, "we"
+present, no stock transitions) and still read as a dense results report. The single source of
+truth for the voice is `.claude/skills/house-style/SKILL.md` (sections "The house voice" and
+"Reader-first voice (what the metrics cannot see)"), with `examples/abstract-reader-first.md`
+as the reader-first exemplar and `style_ref` as the exemplar paper when one is given (use
+`~/.claude/skills/house-style/` for a global install). The standard is the exemplar and the
+reader-first read, which is a judgement made by the writer, paper-grader, and the house-style
+judge pass. Do not restate the rules here or in dispatch prompts; point to them.
+
+**Advisory metrics.** `.claude/skills/house-style/scripts/style_metrics.py` (section "Style
+metrics (advisory)") prints the prose's cadence beside the exemplar's. The numbers are
+diagnostics, not limits: writing is adaptive, and the reader-first exemplar itself averages
+about 27 words per sentence. No phase gate, outcome, or retry in this pipeline depends on a
+metric value. The orchestrator may record them for the report:
+
+```sh
+python3 .claude/skills/house-style/scripts/style_metrics.py <manuscript.tex> \
+  --compare --sections --genre <G> [--ref <style_ref>] --json > <dir>/style_metrics.json
+```
+
+`<G>` is the `style_genre` argument; pass `--ref` when `style_ref` resolves to a file. The
+script always exits 0.
+
+**Style block for dispatch prompts.** Every Phase 3 and Phase 4 dispatch that writes, fixes,
+grades, or reviews prose (write-manuscript, paper-grader, paper-fixer, and the Phase 4.5 fix
+round) appends this block:
+
+```
+## House voice (mandatory)
+Write and judge prose in the house voice. Before any prose work, read
+.claude/skills/house-style/SKILL.md, sections "The house voice", "Reader-first voice (what
+the metrics cannot see)", "Style metrics (advisory)", "AI tics", and "Hard constraints",
+and its examples/abstract-reader-first.md.
+Exemplar: <style_ref path, or "none: default exemplar values">. If an exemplar is given, read
+the three passages house-style §Procedure step 2 names.
+The standard is the exemplar and the reader-first read. Optional diagnostics:
+  python3 .claude/skills/house-style/scripts/style_metrics.py <file.tex> --compare --sections --genre <G> [--ref <style_ref>]
+  (compare with the exemplar and use judgement; the numbers are not limits)
+Restructuring is authorized: numbers may move from prose into tables or the supplement under
+house-style's "Numbers may move, never change or vanish" rule, with a number ledger.
+Technical precision and the factual guardrails win over style.
+```
 
 ---
 
@@ -104,8 +154,8 @@ through files on disk.
               │          │
               │   ┌──────┴──────┐
               │   ▼             ▼
-              │ TARGET       MAX ROUNDS
-              │ REACHED      REACHED
+              │ TARGET +     MAX ROUNDS
+              │ STYLE OK     REACHED
               │   │             │
               │   ▼             ▼
               │ SUCCESS    VALIDATED_
@@ -156,11 +206,13 @@ pipeline/
 │   │   ├── formula_code_audit.md         ← canonical formula↔code audit (paper-modeler-owned)
 │   │   ├── anomaly_log.md                ← canonical anomaly catalog (paper-modeler-owned)
 │   │   └── literature_briefing.md        ← Phase 3 positioning briefing (literature-lead-produced)
+│   ├── style_metrics.json                ← advisory style metrics on the Phase 3 draft (optional)
 │   └── decision_log.md
 ├── phase4_polish/
 │   ├── round_1/
 │   │   ├── manuscript.tex
 │   │   ├── paper_grade.md
+│   │   ├── style_metrics.json            ← advisory style metrics for this round (optional)
 │   │   ├── consistency_report.md         ← consistency-auditor verdict
 │   │   └── venue_compliance.md           ← (if venue_compliance=on)
 │   ├── round_2/
@@ -452,7 +504,10 @@ Invoke write-manuscript (Task agent) with:
            - pipeline/phase2_validate/validated_code/ (working implementation)
            - pipeline/phase2_validate/validated_results/ (result CSVs and figures)
            - research_brief.md (problem framing, target venue, notation conventions)
-           Write the manuscript to pipeline/phase3_write/"
+           Write the manuscript to pipeline/phase3_write/
+           Draft every section in the house voice from the first draft; do not
+           rely on a late style pass to fix the register.
+           [Style block from §Writing Style, with <G> and the exemplar filled in]"
   Output: pipeline/phase3_write/
 ```
 
@@ -496,6 +551,11 @@ After write-manuscript completes, verify:
 - [ ] `pipeline/phase3_write/figures/` contains at least 2 PDF figures
 - [ ] `pipeline/phase3_write/references.bib` exists with at least 10 entries
 - [ ] `pipeline/phase3_write/data/` contains evaluation result CSVs
+- [ ] write-manuscript reports that its F.2b house-style pass and reader-first read ran.
+      Optionally record the advisory metrics (§Writing Style) in
+      `pipeline/phase3_write/style_metrics.json` for the final report; they do not gate
+      Phase 3. Any voice problems carry into Phase 4, where the grader's reader-first read
+      and the fixer address them.
 
 **If any are missing:** Re-dispatch write-manuscript with explicit instruction
 to produce the missing artifact. Increment `phase3_retries`.
@@ -526,14 +586,21 @@ Round 0:
   If score >= target AND venue_compliance verdict != FAIL: → SUCCESS (skip fixing)
 
 For round = 1 to max_polish:
-  1. Fix: dispatch paper-fixer on the grade report (+ venue compliance fixable issues if any)
-  2. Grade: dispatch paper-grader on the fixed manuscript
-  3. If venue_compliance=on: dispatch venue-compliance-gate; if FAIL with non-fixable issues
+  1. Fix: dispatch paper-fixer on the grade report (+ venue compliance fixable issues if any;
+     paper-fixer rewrites the paragraphs the grader's reader-first read flags)
+  2. Optionally record advisory style metrics on the fixed manuscript → round_N/style_metrics.json
+  3. Grade: dispatch paper-grader on the fixed manuscript
+  4. If venue_compliance=on: dispatch venue-compliance-gate; if FAIL with non-fixable issues
      → exit with VALIDATED_BUT_VENUE_NONCOMPLIANT
-  4. If score >= target AND venue compliance OK: → SUCCESS (proceed to Phase 4.5)
-  5. If score < target and rounds remaining: continue
-  6. If max rounds reached: → VALIDATED_BELOW_TARGET (still proceed to Phase 4.5)
+  5. If score >= target AND venue compliance OK: → SUCCESS (proceed to Phase 4.5)
+  6. If score < target and rounds remaining: continue
+  7. If max rounds reached: → VALIDATED_BELOW_TARGET (still proceed to Phase 4.5)
 ```
+
+**Style at Phase 4 exit.** The house voice enters the exit decision only through the grader's
+Clarity score, which includes its reader-first read (paper-grader §House Voice). The advisory
+metrics never block an exit. If metrics are recorded, re-record them after the Phase 4.5 fix
+round, since those fixes also edit prose; the final report uses the last values.
 
 ### Phase 4 Sub-Gate: Venue Compliance (if `venue_compliance=on`)
 
@@ -560,6 +627,8 @@ Invoke venue-compliance-gate (Task agent) with:
 Invoke paper-grader (Task agent) with:
   prompt: "/paper-grader pipeline/phase3_write/manuscript.tex"
           (or pipeline/phase4_polish/round_N/manuscript.tex for round N)
+          + "Style metrics (advisory, if recorded): <path to style_metrics.json>"
+          + [Style block from §Writing Style]
   Output: pipeline/phase4_polish/round_N/paper_grade.md
 ```
 
@@ -571,7 +640,8 @@ Invoke paper-fixer (Task agent) with:
            Read: pipeline/phase4_polish/round_N/paper_grade.md
            Read: pipeline/phase4_polish/round_N/manuscript.tex
            (or pipeline/phase3_write/manuscript.tex for round 0)
-           Write fixed manuscript to: pipeline/phase4_polish/round_{N+1}/manuscript.tex"
+           Write fixed manuscript to: pipeline/phase4_polish/round_{N+1}/manuscript.tex
+           [Style block from §Writing Style]"
   Output: pipeline/phase4_polish/round_{N+1}/
 ```
 
@@ -582,6 +652,8 @@ Paper-fixer **MAY** fix:
 - Table incompleteness (missing entries, wrong numbers vs CSV data)
 - Citation formatting issues
 - Clarity improvements (rewriting confusing sentences)
+- House-voice rewrites through house-style of the paragraphs the grader's reader-first read
+  flags, including moving numbers from prose into tables under its number-ledger rule
 - Missing figure references or broken cross-references
 - Reproducibility issues (missing seeds, unclear parameter values)
 
@@ -618,8 +690,8 @@ Invoke consistency-auditor (Task agent) with:
 - **Verdict PASS_WITH_WARNINGS** → proceed; copy warnings into `final_report.md`
   under "Residual Issues."
 - **Verdict FAIL** → re-dispatch paper-fixer with `consistency_report.md` as
-  input (counts toward `max_polish + 1` extra "consistency round"). After
-  paper-fixer completes, re-grade and re-audit. If second consistency audit
+  input and the §Writing Style style block (counts toward `max_polish + 1` extra
+  "consistency round"). After paper-fixer completes, re-grade and re-audit. If second consistency audit
   also FAILs → STOP with outcome `CONSISTENCY_FAILURE`; surface report to user.
 
 `consistency_report.md` is also included in the final_report's "All Files
@@ -675,6 +747,8 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 ## Phase3 Retries: [0/1/2]
 ## Polish Round: [0/1/2/3]
 ## Latest Score: [X/50 or N/A]
+## House Voice: [reader-first read PASS | paragraphs flagged: N | N/A] (genre: default | results; exemplar: default | <style_ref>)
+- Advisory metrics last recorded: [path to style_metrics.json, or none]
 ## Marginal Decision: [N/A | PENDING | PROCEED | RETHINK | STOP]
 
 ## Context for Resume
@@ -738,6 +812,20 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
 - **Rounds**: [count]
 - **Issues fixed**: [list]
 
+## Writing Style (if Phase 3 executed)
+- **Reader-first read** (final grader): [PASS | paragraphs still flagged, with rules]
+- **Advisory metrics vs. exemplar** (if recorded; house-style "Style metrics (advisory)"),
+  genre [default | results], exemplar [default | <style_ref>]. Information only, not pass/fail.
+| Metric | Exemplar | Phase 3 draft | Final | Note |
+|--------|----------|---------------|-------|------|
+| mean sentence words | | | | |
+| % sentences > 45 words | | | | |
+| sentences per paragraph | | | | |
+| "we" per 1k | | | | |
+| semicolons per 1k | | | | |
+| numbers per 1k | | | | |
+| % sentences with > 3 numbers | | | | |
+
 ## Score Breakdown (if graded)
 | Dimension    | Score |
 |-------------|-------|
@@ -796,7 +884,11 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
    the same result. If Phase 2 returns NO-GO, either RETHINK (revise the spec) or
    STOP. Don't retry.
 
-7. **"Let me dispatch Phase 3 sub-agents myself instead of using write-manuscript"** —
+7. **"The tic checks pass, so the house voice passes"** — NO. No em-dashes, "we" present,
+   and correctly spelled defined terms are necessary, not sufficient. Neither do metrics close
+   to the exemplar. The house voice is judged by the reader-first read against the exemplar.
+
+8. **"Let me dispatch Phase 3 sub-agents myself instead of using write-manuscript"** —
    NO. Write-manuscript manages its own sub-agents. The pipeline orchestrator dispatches
    phases, not sub-agents of phases. Stay at the right abstraction level.
 
@@ -812,7 +904,7 @@ The orchestrator itself is lightweight. It dispatches phases and checks outputs.
 | Phase 1 dispatch + gate                  | ~5K                 | ~200K (methodology-architect; up to ~250K in revision/RETHINK mode) |
 | Phase 2 dispatch + gate                  | ~5K                 | ~120K (validate-method incl. stress tests)                          |
 | Phase 3 dispatch + gate                  | ~5K                 | ~250K (write-manuscript orchestrator + 4–7 sub-dispatches)          |
-| Phase 4 loop (per round)                 | ~8K                 | ~120K (grader 80K + fixer 40K)                                      |
+| Phase 4 loop (per round)                 | ~8K                 | ~120K (grader 80K + fixer 40K; +40K when the fixer runs a style pass) |
 | Phase 4.5 dispatch + gate                | ~3K                 | ~30K (consistency-auditor)                                          |
 | Pipeline log + state + report            | ~10K                | —                                                                   |
 | **Orchestrator total** (4 phases + 3 polish rounds) | **~60K**  | —                                                                   |
