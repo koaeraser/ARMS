@@ -60,22 +60,26 @@ Score each dimension 1-5. Provide a 2-3 sentence justification for each score.
 | 5 | Rigorous proofs; comprehensive reproducibility; all boundary cases analyzed |
 
 ### 2. Completeness (1-5)
+Judge against the agreed claims and article genre in `manuscript_plan.md`, including
+supporting artifacts. Extra analysis types or pages do not automatically earn credit.
 | Score | Meaning |
 |-------|---------|
-| 1 | Missing major sections (no theory, no evaluation, or no comparison) |
-| 2 | Standard sections present but major evaluation gaps |
-| 3 | All standard sections; basic evaluation with at least one quantitative study |
-| 4 | Comprehensive: theory + simulation/evaluation + real data + sensitivity analysis |
-| 5 | Exhaustive: + comprehensive robustness checks + ablation |
+| 1 | A central claim lacks essential explanation or evidence |
+| 2 | Major gaps remain in the planned argument or supporting evidence |
+| 3 | Core argument and necessary evidence are present, with limited gaps |
+| 4 | Agreed claims are fully supported at appropriate main/supplement/archive destinations |
+| 5 | Complete, selective exposition anticipates material reader questions without redundancy |
 
 ### 3. Rigor (1-5)
+Apply evidence standards appropriate to the claims: exact calculations need no Monte
+Carlo confidence interval; a conceptual comparison need not invent a real-data study.
 | Score | Meaning |
 |-------|---------|
-| 1 | No uncertainty quantification; claims without evidence |
-| 2 | Basic CI/coverage reported; some claims unsupported |
-| 3 | Proper UQ throughout; standard robustness checks |
-| 4 | + Heterogeneity analysis + sensitivity analysis + relevant diagnostics |
-| 5 | + Formal theoretical guarantees + comprehensive stress tests |
+| 1 | Claims lack evidence or essential assumptions |
+| 2 | Some claims supported, but material inferential or diagnostic gaps remain |
+| 3 | Claims supported with appropriate uncertainty treatment and relevant checks |
+| 4 | Assumptions, sensitivities and diagnostics adequately assess the stated scope |
+| 5 | Strong theoretical or empirical support addresses relevant failure modes and boundaries |
 
 ### 4. Clarity (1-5)
 | Score | Meaning |

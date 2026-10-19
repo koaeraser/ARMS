@@ -202,9 +202,10 @@ Procedure:
 
 ### Theoretical Properties (if applicable for the domain)
 
-- State as formal Propositions
-- Include proof or proof sketch
-- Connect to practical implications
+- Follow the manuscript plan: formal propositions only when they advance the argument.
+- Provide the necessary justification; place lengthy proofs in the supplement and
+  cite established results rather than re-proving them by default.
+- Connect to practical implications.
 
 ### Results (within the plan)
 

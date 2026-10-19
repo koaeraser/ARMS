@@ -207,11 +207,15 @@ You **MAY** fix:
 5. **Citation issues** — missing citations, bibliography entry not in `.bib`, or
    incorrect citation format per the target venue. Add or fix.
 
-6. **Clarity improvements** — rewrite confusing sentences for clarity. Do NOT
-   change the meaning or conclusions.
+6. **Clarity improvements** — rewrite confusing sentences and address reviewer-flagged
+   structural excess under manuscript_plan.md. Combine repetitive sections/displays
+   or relocate supporting detail, updating cross-references and the evidence-disposition
+   record. Preserve meaning, important qualifications and conclusion-changing adverse
+   findings. This is an editorial pass; a subsequent style-only pass preserves its content.
 
-7. **Missing figure references** — a figure exists in `figures/` but isn't
-   referenced in the text. Add a reference with appropriate caption.
+7. **Missing figure references** — a figure selected by the manuscript plan is not
+   referenced at its intended destination. Add the reference and appropriate caption;
+   a file's presence alone does not require including it in the article.
 
 8. **Reproducibility gaps** — missing random seeds, unclear parameter values,
    unstated Monte Carlo budget. Add the information from the code.
