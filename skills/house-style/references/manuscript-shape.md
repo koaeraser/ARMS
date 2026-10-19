@@ -29,3 +29,8 @@ Every writer receives the same plan and its own section allowance. After assembl
 The critic and grader assess article-scale clarity in addition to paragraph style. Report concrete redundant sections/displays and a proposed disposition. Completeness means the agreed claims are supported in the appropriate artifact, not that every computed cell is printed. Scope comparators to the scientific question and applicable experiment. A diagnostic or prior-sensitivity table need not repeat unrelated methods.
 
 A final style-only pass does not silently delete content. Structural reductions happen in the drafting/editorial pass under this plan, with preserved evidence and relocation records; then house-style checks the selected manuscript for scientific integrity. Scores and formatting passes cannot substitute for reading the whole paper.
+
+## Synopsis review
+
+The plan feeds `synopsis-gate.md` in this directory. A reviewed synopsis and actual
+author approval must precede full drafting; the plan alone does not open the gate.
