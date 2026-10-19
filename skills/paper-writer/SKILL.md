@@ -1,3 +1,11 @@
+
+
+## Contribution evidence (shared contract)
+
+Read `../house-style/references/contribution-evidence.md` before selecting, writing,
+or evaluating the contribution. Carry the project `contribution_dossier.md` alongside
+`manuscript_plan.md`. Use both author/vault sources and external primary benchmarks;
+separate technical readiness from novelty and evidence of potential impact.
 # Paper Writer
 
 ## Manuscript shape and author exemplars

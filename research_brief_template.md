@@ -190,3 +190,13 @@
 ### Key Papers
 <!-- Optional: 3-5 must-read papers with one-line descriptions.
      e.g., Schmidli et al. (2014) — robust MAP prior for historical borrowing -->
+
+## Contribution and impact evidence
+- **Declared genre and strongest proposed contribution**:
+- **Closest author/vault precedents and external published benchmarks**:
+- **Exact difference from prior work (established / verified here / unverified)**:
+- **Intended user, decision/inference changed, and credible alternative**:
+- **Decisive evaluation and failure condition**:
+- **Impact evidence available versus proposed**:
+<!-- Establish contribution_dossier.md before drafting. Do not count prestige,
+     length, or self-objective optimality as evidence of a substantive advance. -->

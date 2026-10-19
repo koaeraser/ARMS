@@ -1,3 +1,11 @@
+
+
+## Contribution evidence (shared contract)
+
+Read `../house-style/references/contribution-evidence.md` before selecting, writing,
+or evaluating the contribution. Carry the project `contribution_dossier.md` alongside
+`manuscript_plan.md`. Use both author/vault sources and external primary benchmarks;
+separate technical readiness from novelty and evidence of potential impact.
 # Research Pipeline
 
 ## Manuscript shape and author exemplars
@@ -102,6 +110,7 @@ Write and judge prose in the house voice. Before any prose work, read
 the metrics cannot see)", "Style metrics (advisory)", "AI tics", and "Hard constraints",
 and its examples/abstract-reader-first.md.
 Manuscript plan: <project manuscript_plan.md>; carry section allowances and artifact placement.
+Contribution dossier: <project contribution_dossier.md>; verify precedents, claim difference and impact evidence.
 Exemplar: <author source paths from the plan; style_ref when supplied, generic fallback only if unavailable>. If an exemplar is given, read
 the three passages house-style §Procedure step 2 names.
 The standard is the exemplar and the reader-first read. Optional diagnostics:
@@ -345,7 +354,9 @@ Log to `pipeline/pipeline_log.md`:
 ```
 Invoke methodology-architect (Task agent) with:
   prompt: "Read research_brief.md. Produce methodology_specification.md and
-           methodology_rationale.md. Write outputs to pipeline/phase1_think/."
+           methodology_rationale.md. Write outputs to pipeline/phase1_think/.
+           Also create project-root contribution_dossier.md using original
+           author and external benchmarks and a falsifiable contribution test."
   Input:  research_brief.md (the problem statement)
   Output: pipeline/phase1_think/
 ```
@@ -365,6 +376,7 @@ contains ALL required sections:
 
 | Section | Required Content |
 |---------|-----------------|
+| Contribution dossier | Project-root contribution_dossier.md; closest original precedents, author and external benchmark roles, exact proposed difference, decisive evaluation and evidence gaps |
 | One-Sentence Summary | Present |
 | Core Idea | Present, with mathematical notation |
 | Mathematical Specification | All symbols defined, all assumptions stated |
@@ -417,6 +429,24 @@ Invoke validate-method (Task agent) with:
   Output: pipeline/phase2_validate/
 ```
 
+### Contribution gate (before drafting)
+
+Read the project contribution dossier alongside the validation result. The architect
+must identify the closest original precedents and a decisive evaluation; the validator
+records what the evidence supports. Missing central evidence prevents a claim of new-method
+readiness even when numerical checks pass. Within authorized scope and the remaining
+rethink budget, return specific research gaps to Phase 1/2; otherwise record them and
+record outcome NO_GO before drafting when the requested contribution is unsupported,
+or VALIDATED_BELOW_TARGET after a technically validated draft exists. Do not add a speculative claim to
+get through the gate. For a synthesis, assess its declared explanatory/practical
+contribution rather than require an invented theorem. Pass the dossier to Phase 3/4.
+
+For a central contribution gap, write its source evidence and required falsifying
+test into the validation report and enter the existing RETHINK protocol. It uses
+the same `rethink_count` and `max_rethinks`, never a new unlimited loop. A revised
+claim must be checked against the original project objective; changing the genre
+is not an automatic way to satisfy that objective.
+
 ### Phase 2 Gate
 
 After validate-method completes, read `pipeline/phase2_validate/validation_report.md`.
@@ -424,8 +454,8 @@ Check the **Verdict** field:
 
 | Verdict | Action |
 |---------|--------|
-| **GO** | Proceed to Phase 3. Log the quantitative advantage (primary metric, magnitude). |
-| **CONDITIONAL GO** | Proceed to Phase 3. Log the conditions under which the advantage holds, and the conditions under which it doesn't. Write both into the Phase 3 dispatch instructions. |
+| **GO** | If the contribution gate passes, proceed to Phase 3; otherwise follow its bounded RETHINK route. Log the quantitative advantage (primary metric, magnitude). |
+| **CONDITIONAL GO** | If the contribution gate passes, proceed to Phase 3; otherwise follow its bounded RETHINK route. Log the conditions under which the advantage holds, and the conditions under which it doesn't. Write both into the Phase 3 dispatch instructions. |
 | **MARGINAL** | Write `pipeline/MARGINAL_decision_required.md` (template below). Set `pipeline_state.md` → `status: AWAITING_USER_INPUT`. Halt. To resume, the user edits the file's `Decision:` line to one of `PROCEED | RETHINK | STOP`, then re-invokes `/research-pipeline` (resume mode picks up the decision automatically). |
 | **NO-GO** | Invoke RETHINK protocol (see below). |
 
@@ -474,7 +504,7 @@ likely fundamental — additional rethinks waste budget without changing the
 diagnosis. Override via `max_rethinks=N` if you have a specific reason
 to believe the third attempt would be different (e.g., new data arrived).
 
-When Phase 2 returns NO-GO:
+When Phase 2 returns NO-GO or the contribution gate identifies a central unsupported claim:
 
 1. Check rethink counter. If rethinks >= `max_rethinks`: **STOP** with honest failure report.
    Write to `pipeline/final_report.md` with outcome = NO_GO.
@@ -593,12 +623,11 @@ with explicit instruction to include it (counts toward `max_phase_retries`).
 Round 0:
   Grade pipeline/phase3_write/manuscript.tex
   If venue_compliance=on: also dispatch venue-compliance-gate
-  If score >= target AND venue_compliance verdict != FAIL: → SUCCESS (skip fixing)
+  If score >= target AND venue_compliance verdict != FAIL AND contribution status is SUPPORTED: → SUCCESS (skip fixing)
   If venue compliance FAIL: exit VALIDATED_BUT_VENUE_NONCOMPLIANT for
     non-fixable failures; send fixable failures to the fixing loop before a score-only exit
   If venue compliance passes (or is off), no fixable execution issue remains,
-  and the gap requires new research: record the reason, exit
-  VALIDATED_BELOW_TARGET, and proceed to Phase 4.5
+  and the gap requires new research: use the Research-gap route below
 
 For round = 1 to max_polish:
   1. Fix: dispatch paper-fixer on the grade report (+ venue compliance fixable issues if any;
@@ -607,12 +636,20 @@ For round = 1 to max_polish:
   3. Grade: dispatch paper-grader on the fixed manuscript
   4. If venue_compliance=on: dispatch venue-compliance-gate; if FAIL with non-fixable issues
      → exit with VALIDATED_BUT_VENUE_NONCOMPLIANT
-  5. If score >= target AND venue compliance OK: → SUCCESS (proceed to Phase 4.5)
-  6. If score < target, no fixable execution issues remain, and the gap requires new
-     research: record the reason and exit VALIDATED_BELOW_TARGET; proceed to Phase 4.5.
+  5. If score >= target AND venue compliance OK AND contribution status is SUPPORTED: → SUCCESS (proceed to Phase 4.5)
+  6. If (score < target OR contribution status is not SUPPORTED), no fixable execution issues remain, and the gap requires new
+     research: use the Research-gap route below.
      Otherwise, if rounds remain: continue
   7. If max rounds reached: → VALIDATED_BELOW_TARGET (still proceed to Phase 4.5)
 ```
+
+**Research-gap route.** If the needed work is within the authorized objective and
+remaining `max_rethinks` budget, append the grader's evidence and decisive next
+test to the validation report and enter the existing RETHINK protocol. Each
+re-dispatch increments the same counter; revalidate and redraft affected claims
+before regrading. If scope, feasibility or budget prevents this, preserve the best
+verified draft, record the gap, exit VALIDATED_BELOW_TARGET and proceed to Phase
+4.5. Never spend polishing rounds inventing or hiding research evidence.
 
 **Style at Phase 4 exit.** The house voice enters the exit decision only through the grader's
 Clarity score, which includes its reader-first read (paper-grader §House Voice). The advisory
@@ -780,8 +817,8 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 
 | Outcome | Condition | Action |
 |---------|-----------|--------|
-| **SUCCESS** | Phase 4 reaches target score | Write final report. Pipeline complete. |
-| **VALIDATED_BELOW_TARGET** | Phase 4 exhausts max rounds or has no fixable execution issue and a research-quality gap | Write final report. Method is validated, execution quality below target. |
+| **SUCCESS** | Phase 4 reaches target score, venue compliance is not FAIL, and independently checked contribution status is SUPPORTED | Write final report. Pipeline complete. |
+| **VALIDATED_BELOW_TARGET** | Phase 4 exhausts max rounds or has no fixable execution issue and a research-quality gap | Write final report. Report technical validation separately from the unresolved execution or contribution gap. |
 | **MARGINAL** | Phase 2 returns MARGINAL verdict | Stop. Surface to user for decision. |
 | **NO_GO** | Phase 2 fails after max rethinks | Write honest failure report. |
 | **KILL** | validate-method invokes kill criterion | Write honest failure report. Fundamental limitation identified. |
@@ -801,6 +838,14 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
 # Research Pipeline Final Report
 
 ## Outcome: [SUCCESS / VALIDATED_BELOW_TARGET / MARGINAL / NO_GO / KILL]
+
+## Contribution and impact
+- Contribution status: SUPPORTED / PROVISIONAL / NOT_ESTABLISHED
+- Closest original precedents and the exact supported difference:
+- Author and external benchmark lessons applied:
+- Practical consequence demonstrated, its magnitude and evidence limits:
+- Remaining research gaps and strongest counterargument:
+- Technical readiness is separate from journal acceptance or adoption.
 ## Total Phases Executed: [N]
 ## Rethinks Used: [N]
 

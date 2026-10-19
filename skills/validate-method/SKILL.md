@@ -1,4 +1,33 @@
+
+
+## Contribution evidence (shared contract)
+
+Read `../house-style/references/contribution-evidence.md` before selecting, writing,
+or evaluating the contribution. Carry the project `contribution_dossier.md` alongside
+`manuscript_plan.md`. Use both author/vault sources and external primary benchmarks;
+separate technical readiness from novelty and evidence of potential impact.
 # Validate Method
+
+## Select the validation track before executing
+
+Record the declared genre and decisive contribution test from the dossier. The
+numerical superiority checks, percentage thresholds, mandatory stress suite,
+seed reruns and “no advantage” kill conditions below apply to empirical method
+superiority claims. They are not universal gates for analytical work or synthesis.
+For exact calculations check derivations, boundary cases and independent numerical
+agreement. For a synthesis/decision audit verify original precedents and test the
+specific promised decision distinction against a credible alternative; report
+tradeoffs, counterexamples, input dependence and practical limits. Do not call an
+optimized objective winning itself a demonstrated external benefit.
+
+For those analytical/synthesis tracks, use GO when the declared bounded claim is
+supported by the decisive checks; CONDITIONAL GO when support holds only under
+explicit narrower conditions; MARGINAL when its practical relevance remains
+unresolved; NO-GO when the central claim is unsupported or contradicted. The same
+iteration/time limits apply, with “unsupported claim” replacing “no advantage”.
+This track selection overrides the empirical-only criteria below, not correctness,
+source verification, budget limits or the original user objective. Record the
+track, evidence and contribution status in validation_report.md.
 
 ## Identity
 
@@ -141,11 +170,12 @@ proprietary data not in our brief's data assets") may proceed if the
 rationale is recorded here.
 
 ## Downstream contract
-- paper-modeler: every ID with status=FULL must appear in EVERY production CSV
-  under `pipeline/phase3_write/data/`. No silent drops.
-- paper-writer: every FULL ID must appear in every results table.
-- paper-grader: verifies (a) inventory file exists, (b) every FULL ID present in
-  every table; does NOT re-derive the list from the brief.
+- paper-modeler: every FULL ID must appear in its applicable comparative
+  evaluation CSV; label input and diagnostic-only outputs separately. No silent drops.
+- paper-writer: include relevant FULL comparators in the corresponding comparison
+  table, with main/supplement placement recorded in evidence-disposition.md.
+- paper-grader: verifies inventory and relevant coverage against that disposition;
+  do not require comparator rows in unrelated descriptive tables.
 ```
 
 If the inventory is INCOMPLETE: do **NOT** issue verdict GO. Either implement

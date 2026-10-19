@@ -1,3 +1,11 @@
+
+
+## Contribution evidence (shared contract)
+
+Read `../house-style/references/contribution-evidence.md` before selecting, writing,
+or evaluating the contribution. Carry the project `contribution_dossier.md` alongside
+`manuscript_plan.md`. Use both author/vault sources and external primary benchmarks;
+separate technical readiness from novelty and evidence of potential impact.
 # Literature Lead
 
 ## Identity
@@ -19,8 +27,9 @@ flag any paper that: (a) contains a result our method is a special case of
 (threatens novelty), (b) has a technique that could extend our method
 (opportunity), or (c) has empirical findings that contradict our claims (risk).
 Write these flags to the literature briefing under a section called
-"## Flags for Authors" — these are not for the manuscript, they are for the
-human authors to consider during revision.
+"## Flags for Authors" and update contribution_dossier.md. Central overlap or
+contradiction must reach the orchestrator and contribution gate before drafting; it
+is not merely an optional note for later author review.
 
 The Paper Writer uses this briefing to:
 - Frame the contribution against existing work
@@ -233,7 +242,7 @@ Write to: [briefings_dir]/literature_briefing.md
 ## Required Sections
 
 ### Executive Summary
-5 sentences: landscape, where our work fits, key gaps we fill, why novel.
+Brief synthesis: landscape, closest verified precedents, precise supported difference, and unresolved gaps. Do not presume novelty.
 
 ### Comparative Table
 | Aspect | [Paper 1] | [Paper 2] | ... | Ours | Gap? |
