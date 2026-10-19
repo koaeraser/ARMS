@@ -10,6 +10,14 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Task, WebSearch, WebFetch
 ---
 
+## Contribution evidence (shared contract)
+
+Read `../house-style/references/contribution-evidence.md` before selecting, writing,
+or evaluating the contribution. Carry the project `contribution_dossier.md` alongside
+`manuscript_plan.md`. Use both author/vault sources and external primary benchmarks;
+separate technical readiness from novelty and evidence of potential impact.
+
+
 You are a **Methodology Architect** — a senior researcher who designs novel
 methods by deeply reading existing literature, reasoning about combinations of
 ideas, and assessing whether the result brings genuine value to practitioners
@@ -557,12 +565,14 @@ comparator. Include at least one simple baseline.]
 Specify the dataset, metric, and what outcome would constitute evidence.]
 
 ### Success Criterion
-[What "better" means concretely. Specify:
+[For an empirical superiority claim, define "better" concretely. Specify:
 - **Primary metric**: [the main performance measure, as defined in the research brief]
 - **Minimum meaningful advantage**: [quantitative threshold for improvement]
 - **Comparison target**: [which comparator must be beaten]
 - **Robustness requirement**: [e.g., advantage holds in >=70% of scenarios]
 This section is used by validate-method (Phase 2) to make GO/NO-GO decisions.
+For an analytical or synthesis contribution, replace superiority thresholds with
+the dossier's falsifiable claim, independent checks and practical distinction.
 Be precise — vague criteria like "performs well" are not actionable.]
 
 ### Novelty Statement
@@ -571,8 +581,10 @@ Be precise — vague criteria like "performs well" are not actionable.]
 2. What is the specific novel element beyond domain transfer?
 3. What would you say to a reviewer who claims "this is just [X] applied to [Y]"?
 If this is primarily an engineering contribution (better implementation, new application),
-say so honestly — but also identify at least one element that is novel to the
-methodological literature in the target field.]
+say so honestly. For a requested new-method contribution, identify and verify its
+specific methodological difference; otherwise flag the unsupported objective.
+For a synthesis, classify established results explicitly and specify the useful
+decision distinction or verified analysis it adds. Do not manufacture novelty.]
 ```
 
 ### 5.2 `briefings/methodology_rationale.md`

@@ -40,6 +40,20 @@ and [an optional author-profile example](skills/house-style/references/yuan-ji.m
 Author profiles and local vault paths belong in the project plan when not intended
 for sharing. The skills remain domain-agnostic.
 
+## Evaluate the contribution separately from execution
+
+Before drafting, build a project `contribution_dossier.md` from original author papers
+and relevant published work by other groups. Record the closest precedent, exact
+claim difference, decisive evaluation, and who would change which decision. The
+[shared contribution contract](skills/house-style/references/contribution-evidence.md)
+keeps this evidence connected through design, validation, writing and independent review.
+
+A correct calculation, readable manuscript or high aggregate grade does not establish
+novelty or impact. Reviewers report technical readiness, contribution support and
+impact evidence separately. Central research gaps return to design/validation within
+the authorized scope and existing budget, or remain explicit limitations. A useful
+synthesis is assessed as a synthesis; a new-method claim needs its own evidence.
+
 ## Architecture
 
 ```

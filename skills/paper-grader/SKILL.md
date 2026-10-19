@@ -1,3 +1,11 @@
+
+
+## Contribution evidence (shared contract)
+
+Read `../house-style/references/contribution-evidence.md` before selecting, writing,
+or evaluating the contribution. Carry the project `contribution_dossier.md` alongside
+`manuscript_plan.md`. Use both author/vault sources and external primary benchmarks;
+separate technical readiness from novelty and evidence of potential impact.
 # Paper Grader
 
 ## Manuscript shape and author exemplars
@@ -112,8 +120,9 @@ impossible.
 
 - **Cross-disciplinary bridges count as novelty.** Importing a framework from
   one domain to a fundamentally different domain requires new theoretical
-  analysis, new evaluation methodology, and new domain-specific insights. This
-  should score at least 4 if accompanied by new theoretical results.
+  analysis, new evaluation methodology, and new domain-specific insights. A
+  high score requires a source-verified difference and evidence of what it enables;
+  cross-disciplinary transfer has no automatic score floor.
 - **Do NOT penalize transparency.** If a paper honestly cites its intellectual
   ancestors and acknowledges connections to prior frameworks, this is a
   strength, not evidence of low novelty. Evaluate whether the contribution
@@ -142,12 +151,11 @@ impossible.
 Impact is NOT about mathematical elegance or novelty — those are scored
 separately. Impact asks: **does this method bring value to real people?**
 
-**CRITICAL: Score POTENTIAL impact, not demonstrated adoption.** An unpublished
-manuscript cannot have citations or uptake yet. Judge impact by
-whether the contribution WOULD change practice if adopted, not whether it
-already has. A new paper with strong potential impact should be able to score
-as high as an established paper with proven adoption. Otherwise, the rubric
-systematically disadvantages new work and rewards incumbency.
+Assess potential impact without requiring adoption or citations. Distinguish the
+plausibility of the impact chain from its demonstrated support. A new paper can earn
+a high score through a convincing, decision-relevant evaluation; hypothetical social
+benefits or winning its own optimization objective do not suffice. Follow the shared
+contribution contract and state the evidence level explicitly.
 
 To score Impact, answer these questions:
 - **Decision change**: Would a practitioner using this method make different
@@ -171,8 +179,8 @@ To score Impact, answer these questions:
 | 1 | Method performs worse than simple baselines |
 | 2 | Comparable to baselines; no clear advantage demonstrated |
 | 3 | Modest improvement over baselines on primary metric; some comparators missing |
-| 4 | Clear improvement over all comparators; well-quantified; advantages hold across scenarios |
-| 5 | Dominant performance across multiple metrics/scenarios; improvement is both statistically and practically significant |
+| 4 | Convincing evidence for the stated benefit against relevant alternatives; tradeoffs and failure settings quantified |
+| 5 | Decisive, reproducible evidence of practically important benefit for the intended use, with uncertainty, sensitivity and limitations resolved |
 
 ---
 
@@ -461,6 +469,14 @@ Advisory metrics vs. exemplar (if consulted; genre default | results; exemplar d
   Weighted total = [execution + research] = [score]/50
 ### Grade: [A (>=42) | B (>=34) | C (>=25) | F (<25)]
 
+### Contribution Assessment
+Status: [SUPPORTED | PROVISIONAL | NOT_ESTABLISHED] for [declared genre and claim].
+Closest precedents and exact difference: [source locators, supporting evidence].
+Potential impact: [who changes which decision, magnitude/limits, evidence level].
+Strongest counterargument: [what would invalidate this contribution].
+Unresolved research gaps: [decisive next analysis/source check, separate from fixer tasks].
+Technical/editorial readiness: [separate verdict; does not override contribution status].
+
 ### Code Audit Summary
 [Include the auditor's summary table and any critical findings]
 
@@ -489,11 +505,9 @@ Bayesian Analysis). Do not soften the bar.]
 
 ## Calibration Notes
 
-- Compare quality against the reference papers in `reference/`. These are
-  published papers from top-tier statistics venues (JASA, JRSS-B, JRSS-C,
-  Biometrika, Biometrics, Annals of Statistics, Annals of Applied Statistics,
-  Bayesian Analysis) and represent scores of 4-5 on most dimensions. Grade
-  the submission against this bar; do not soften it to fit the brief.
+- Compare against the closest original papers in the contribution dossier, including
+  author work and relevant external work. Explain the delta with exact locators.
+  Publication venue does not imply a score of 4–5, and references are not a grading curve.
 - Scoring uses **weighted total /50** (not raw /35). Research Quality dimensions
   (Novelty, Impact, Performance) carry x2.0 weight to ensure the grader rewards
   genuine methodological contribution, not just polished execution.
@@ -506,9 +520,13 @@ Bayesian Analysis). Do not soften the bar.]
   unreadable, note this as a limitation and FLAG it under Correctness.
 - Impact scoring should consider the target venue's audience as specified in
   the research brief.
-- **Performance dimension**: Score based on empirical results. If no quantitative
-  evaluation with known ground truth is present, cap Performance at 2. If
-  appropriate uncertainty quantification is not reported, cap Performance at 3.
+- **Performance dimension**: Assess evidence appropriate to the declared claim and
+  genre. For empirical superiority claims, missing relevant comparators or a valid
+  evaluation caps Performance at 2; missing necessary uncertainty assessment caps
+  it at 3. Exact analytical results need numerical-error checks, not artificial
+  Monte Carlo intervals. For a synthesis or decision audit, judge verified examples
+  and whether the promised decision distinction is demonstrated; do not invent a
+  method-superiority requirement or award novelty for clarity alone.
 - **Single source of truth for shared artifacts**: Formula correctness comes
   from `formula_code_audit.md` (paper-modeler-owned), comparator coverage from
   `comparator_inventory.md` (validate-method-owned), anomaly coverage from

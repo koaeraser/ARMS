@@ -1,3 +1,11 @@
+
+
+## Contribution evidence (shared contract)
+
+Read `../house-style/references/contribution-evidence.md` before selecting, writing,
+or evaluating the contribution. Carry the project `contribution_dossier.md` alongside
+`manuscript_plan.md`. Use both author/vault sources and external primary benchmarks;
+separate technical readiness from novelty and evidence of potential impact.
 # Paper Modeler
 
 ## Identity
@@ -75,8 +83,9 @@ When running production-scale evaluations:
 
 Implement evaluation scenarios from the methodology specification:
 1. Read the "Minimum Viable Evaluation" section of the methodology spec
-2. Implement at least 3 diverse scenarios with known ground truth,
-   covering a range of conditions (e.g., favorable, adverse, mixed)
+2. Implement the scenarios needed to test the declared claim, including adverse
+   conditions and boundary cases. For empirical robustness claims, use diverse
+   known-truth scenarios; justify coverage rather than a fixed count.
 3. For each scenario:
    - Establish known ground truth (set true parameters explicitly, or use known-answer test cases)
    - Generate test cases from the known ground truth
@@ -166,7 +175,8 @@ paper-writer, paper-grader, or paper-fixer.
 
 ### C. Generate Publication Figures
 
-Produce at least these figures (PDF format):
+Select figures that test the declared contribution (PDF format); these are
+options, not a minimum count:
 - Method vs comparator across conditions (line plot or grouped bar)
 - Sensitivity to key hyperparameter (line plot with error bands)
 - Any figures recommended in the validation report's "Figures to produce" section
@@ -202,8 +212,9 @@ Write `pipeline/phase3_write/briefings/modeling_briefing.md`:
 
 ## Comparator Coverage
 Read `pipeline/phase2_validate/comparator_inventory.md` (validate-method-owned).
-For each comparator with status=FULL, verify it appears in EVERY production CSV
-under `pipeline/phase3_write/data/`. The table here is a YES/NO confirmation
+For each comparator with status=FULL, verify it appears in each applicable comparative evaluation CSV
+under `pipeline/phase3_write/data/`. Diagnostic or input CSVs need not contain
+comparator rows; record that distinction explicitly. The table here is a YES/NO confirmation
 per CSV file, NOT a re-derivation of the comparator list.
 
 | CSV file | Inventory IDs expected (FULL only) | All Present? |
@@ -264,13 +275,13 @@ Required structure:
 | A1  | ...          | 1         | ...     | ...                                | ...                                          |
 
 ## Discussion contract
-paper-writer's Discussion §"Notable patterns and anomalies" MUST cover every
-Type 1–3 anomaly by ID. Type 4–5 are optional but recommended.
+Map each material anomaly to an explanation in the main text or supplement using
+evidence-disposition.md; group related patterns. Internal IDs stay in the audit,
+not necessarily in the scientific prose. Preserve unfavorable findings.
 
 ## Grader contract
-paper-grader's Code Auditor verifies this file exists and that every Type 1–3
-anomaly is referenced (by ID) in the Discussion. Missing references = Rigor −0.5
-each, capped at −1.
+Verify the anomaly log and disposition; penalize missing material explanations,
+not absent internal identifiers or a justified supplementary placement.
 ```
 
 ---
@@ -305,11 +316,18 @@ each, capped at −1.
 
 ## Rules
 
+- Monte Carlo SE and seed checks apply to stochastic evaluations. Exact analytical
+  calculations require numerical-error assessment and independent verification,
+  not artificial simulation or sampling intervals.
+
 - Only work on the specific deliverable you're given
 - Do NOT change the methodology, algorithm, or hyperparameters
 - Do NOT rewrite validated code from scratch — extend it
 - Always activate the venv before running Python: `source .venv/bin/activate`
-- The CODE is authoritative when spec and code disagree
-- Every comparator must appear in every evaluation — no silent drops
-- If a formula is ambiguous in the spec, check the code for the definitive version
+- When code and specification disagree, verify both against the derivation and
+  source evidence; record the resolution. Neither automatically overrides the other.
+- Every relevant comparator must appear in its declared comparative evaluation;
+  document exclusions and diagnostic-only outputs — no silent drops
+- If a formula is ambiguous, check code, derivation and original source, then
+  resolve the ambiguity explicitly; do not treat implementation as proof
 - If you encounter a numerical issue, fix it with a standard approach and document it
