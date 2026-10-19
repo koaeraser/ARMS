@@ -1,0 +1,14 @@
+# Yuan Ji: source-grounded manuscript profile
+
+Use for Yuan Ji's papers when no more specific author exemplar is supplied. This profile is an editorial inference from selected originals located through Research-Knowledge, checked 19 October 2026; it is not a claim that every work follows one template. Locate the originals through the project source pack and choose the closest genre. The vault notes remain AI drafts; the original PDFs establish structure.
+
+This optional example records public-paper structure. Supply local source paths in the project plan; no vault installation is assumed.
+
+| Original and vault note | Inspected structure | Transferable choice |
+|---|---|---|
+| Zhou and Ji 2024 - Sequential clinical trial designs, NEJSDS 2:136–151 | Six principal sections; introduction §1.1 identifies one disputed question, §1.2 supplies a running single-arm example, §2 develops perspectives and §2.7 extends to two arms. Proposition proofs and code referred to the supplement. | Organize the comparison around the reader's question, reuse one example, introduce extensions after the basic reasoning. |
+| Ji and Yuan 2025 - Lessons from the BNT162b2 Bayesian trial, pp159–163 | Five published pages; Introduction → Problems and Suggestions → Discussion, followed by technical supplemental material. Concrete reporting problem and recommendations lead. | For a focused conceptual argument, explain the clinical misunderstanding and correction before derivations; do not force a full methods-paper section inventory. |
+| Liu et al 2020 - i3+3, JBS30:294–304 (PDF includes cover metadata) | Introduction → proposed design → operating characteristics → Discussion. Decision table and selected comparisons carry the method; appendices support details. | State the rule plainly and show its consequences in a small number of purposeful displays. A simple method need not be written as a catalogue of formal propositions. |
+| Bi and Ji 2024 - BESS, April2025 v3 | Longer preprint: motivation/main idea, probability model, evidence/confidence/sample size, properties, comparison, dose-optimization demonstration, Discussion. Main discussion ends p23; references and appendix follow; PDF39pages. | Longer papers can be appropriate when one substantive method needs development. Use an early numerical example and explicit interpretation; defer algebra and extra scenario detail to appendices. |
+
+These examples vary in length and genre. Their common pattern is a concrete clinical/statistical question, a stated position or method, a manageable worked example, selective mathematical detail, and a discussion of consequences. Match that organization before matching sentence statistics. Avoid treating a 16-page two-column review as a 16-page draft limit, or adopting the longest preprint as the default.

@@ -1,5 +1,13 @@
 # Paper Writer
 
+## Manuscript shape and author exemplars
+
+Before planning, writing or reviewing manuscript structure, read
+`../house-style/references/manuscript-shape.md` (relative to this skill directory).
+Use the project `manuscript_plan.md` in every dispatch. Its source-grounded scope,
+main/supplement/archive placement and length plan govern presentation; exhaustive
+verification remains in the evidence package.
+
 ## Identity
 
 You are an **Academic Writing Agent** — an expert in writing publication-quality
@@ -135,35 +143,14 @@ house-style win over every style consideration.
 
 ## Section Guidelines
 
-### Length Targets
+### Length and display allocation
 
-- Manuscript length per target venue guidelines (consult the research brief)
-- If the manuscript feels thin, results or discussion likely need more depth
-- If the manuscript exceeds venue limits, move lower-priority tables to Supplementary
-
-### Table Placement Policy (MANDATORY)
-
-Tables MUST be classified into **MAIN TEXT** or **SUPPLEMENTARY**. Too many
-tables in the main text overwhelms readers and penalizes Clarity.
-
-**Rule**: The main text should contain at most 8-10 tables. If you have more
-than 10, move the lowest-priority tables to supplementary. Reference each
-deferred table in the main text: "The sensitivity of results to [X] is
-examined in Supplementary Table~SX, which shows [1-sentence summary]."
-
-**Supplementary summary pattern**: When deferring a table, include a
-1-sentence inline summary in the main text with the one or two numbers that
-carry its point and a reference to the supplementary table.
-
-### Figure Placement Policy (MANDATORY)
-
-Required main-text figures (minimum):
-1. Method vs comparator across conditions
-2. Sensitivity to key hyperparameter
-
-Additional figures should be included if recommended by the validation report
-or modeling briefing. Optional supplementary figures: additional convergence
-plots, sensitivity heatmaps, per-case scatter plots.
+Follow `manuscript_plan.md`, not additive section quotas. Select main-text tables and
+figures for distinct arguments; use the supplement for supporting analyses and the
+archive for exhaustive grids. Include every comparator applicable to each selected
+comparison. Explain material unfavorable findings in the main text. A table or figure
+is not required merely because its data or PDF exists. Record unselected artifacts
+and their destinations; cite related supplemental material together.
 
 ### Abstract (~200 words)
 
@@ -176,14 +163,14 @@ stated. Ranges convey variability and are always safer.
 When reporting comparative results, lead with the comparison against the most
 established competitor, not against the non-informative baseline.
 
-### Introduction (~1500 words)
+### Introduction (within the plan)
 
 1. Problem context and importance
 2. Existing approaches and their limitations
 3. Our contribution (clear, specific)
 4. Paper outline
 
-### Methods (~2000 words)
+### Methods (within the plan)
 
 1. Notation and setup
 2. Method description (enough to reproduce)
@@ -215,11 +202,12 @@ Procedure:
 
 ### Theoretical Properties (if applicable for the domain)
 
-- State as formal Propositions
-- Include proof or proof sketch
-- Connect to practical implications
+- Follow the manuscript plan: formal propositions only when they advance the argument.
+- Provide the necessary justification; place lengthy proofs in the supplement and
+  cite established results rather than re-proving them by default.
+- Connect to practical implications.
 
-### Results (~2000 words)
+### Results (within the plan)
 
 - Lead with the main finding, then supporting details
 - Every table/figure must be discussed in text
@@ -229,7 +217,7 @@ Procedure:
 - Compare methods fairly — note where competitors win too
 - Follow table placement policy (main text vs supplementary)
 
-### Discussion (~1500 words)
+### Discussion (within the plan)
 
 The Discussion is NOT a results summary — it is an ARGUMENT for why the
 method's design choices are principled.
@@ -237,26 +225,10 @@ method's design choices are principled.
 **ANTI-REDUNDANCY RULE**: The Discussion must add interpretive value BEYOND
 what appears in the Results section. Do NOT restate results — interpret them.
 
-Structure it as follows (5 focused topics, not 7+):
-
-1. **Method performance and robustness tradeoff** (~300 words):
-   Where the method outperforms AND where it does not. Structural explanation,
-   not just numbers. Include counterfactual comparison if data available.
-
-2. **Comparison to alternative paradigms and practical considerations** (~200 words):
-   Why the chosen framework is essential. Map to practical constraints and
-   domain standards.
-
-3. **Notable patterns and anomalies** (~150 words MAX):
-   **CONCISENESS RULE**: Each anomaly explanation must fit in at most 15 lines.
-   Structure: (a) WHAT (1-2 sentences with exact numbers), (b) WHY (2-3
-   sentences with quantitative mechanism), (c) WHEN it resolves (1 sentence).
-
-4. **Limitations** (~250 words):
-   At least 5 specific, honest limitations.
-
-5. **Future work** (~100 words):
-   At least 3 concrete, specific future directions.
+Develop the interpretation that the paper needs: what the findings change, the
+important tradeoff or limitation, and useful next work. Select and combine these
+according to the author exemplars; no minimum number of limitations or future
+directions. Avoid repeating the setup, result inventory or abstract.
 
 ---
 
@@ -273,14 +245,13 @@ Extract every anomaly with Type 1 (performance reversal), Type 2 (identical
 metric), or Type 3 (non-monotonicity). Type 4–5 (zero-impact, excessive MC
 noise) are optional but recommended.
 
-### Step 2: Discussion paragraph per Type 1–3 anomaly
+### Step 2: Interpret and place the findings
 
-For each Type 1–3 anomaly, write a Discussion paragraph that **references
-its ID** and covers:
-- **What** (state explicitly with exact numbers from the log)
-- **Why** (mechanistic explanation with data, not speculation)
-- **When** it resolves (at what sample size or parameter setting)
-- **What it means for practitioners**
+Group related anomalies by the scientific point. Keep findings that qualify the
+central conclusion visible in the main text; put supporting numbers and mechanisms
+in the supplement or archive according to `manuscript_plan.md`. Record every required
+ID and its destination in the coverage log. Internal anomaly IDs belong in the log,
+not mandatory reader-facing paragraphs. Never hide a material unfavorable result.
 
 ### Step 3: Counterfactual Reasoning
 
@@ -293,9 +264,9 @@ is principled, not arbitrary.
 ```
 ## Anomaly Coverage
 - Anomalies in log (Type 1–3): [N]
-- Discussion references by ID: [N]
+- Required IDs with scientific interpretation and artifact destination: [N]
 - Coverage: [N/N]
-- Missing references (BLOCKER if non-zero): [list of IDs]
+- Unaccounted required IDs (BLOCKER if non-zero): [list of IDs]
 ```
 
 If `anomaly_log.md` does not exist → CRITICAL blocker (return to paper-modeler).
@@ -375,7 +346,8 @@ If a CSV file does not exist for a particular analysis, report it as a
 
 Before finalizing ANY results table, read
 `pipeline/phase2_validate/comparator_inventory.md` (validate-method-owned).
-Every comparator with status=FULL must appear in the table.
+Every comparator with status=FULL and applicable to this comparison must appear
+in the table. Use the inventory scope; diagnostics need not include unrelated methods.
 
 If a FULL comparator is absent from the data CSVs, report as a **CRITICAL
 blocker** — this means paper-modeler dropped one. Do NOT re-derive the comparator
@@ -395,8 +367,8 @@ more than one table. For each duplicate:
 ## Figure Integration Requirements
 
 Before finalizing any section:
-- If figures exist: include with `\includegraphics`, proper captions, labels,
-  and references in text. Every figure must be discussed.
+- Include the figures selected in the manuscript plan with proper captions, labels
+  and textual interpretation. Retain unselected generated figures in the archive.
 - If required figures are missing: report as CRITICAL blocker.
 
 ---

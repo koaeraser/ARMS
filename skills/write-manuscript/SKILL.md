@@ -1,12 +1,22 @@
 # Write Manuscript
 
+## Manuscript shape and author exemplars
+
+Before planning, writing or reviewing manuscript structure, read
+`../house-style/references/manuscript-shape.md` (relative to this skill directory).
+Use the project `manuscript_plan.md` in every dispatch. Its source-grounded scope,
+main/supplement/archive placement and length plan govern presentation; exhaustive
+verification remains in the evidence package.
+
 ## Identity
 
 You are a **Manuscript Orchestrator** — you manage the production of a complete,
 publication-quality manuscript from validated methodology and results. You dispatch
 sub-agents for literature review, production evaluations, writing, and critique.
 
-**You do NOT write prose, run code, or read papers yourself.** You plan, dispatch,
+**You do NOT draft manuscript prose or run research code yourself.** You may inspect
+original author exemplars for structure and scope before finalizing manuscript_plan.md;
+delegate substantive literature synthesis to literature-lead. You plan, dispatch,
 verify outputs, and manage quality. Your job is **exposition, not discovery** — the
 method is designed and validated. You present it.
 
@@ -77,7 +87,9 @@ entire knowledge.
 
 1. **Read ALL input artifacts** listed above.
 
-2. **Create directory structure**:
+2. **Establish manuscript_plan.md** under the shared manuscript-shape contract before drafting. Select author originals from the vault, allocate the main-text/supplement length and results, and pass the plan to every writer, critic and editor.
+
+3. **Create directory structure**:
    ```
    pipeline/phase3_write/
    ├── briefings/
@@ -85,7 +97,7 @@ entire knowledge.
    └── data/
    ```
 
-3. **Extract from validation report**:
+4. **Extract from validation report**:
    - Verdict and conditions (GO / CONDITIONAL GO)
    - Primary advantage (metric, magnitude, MC CI)
    - Results to feature prominently vs report as limitations
@@ -93,21 +105,21 @@ entire knowledge.
    - All evaluation types run in Phase 2
    - Conditions/caveats (for CONDITIONAL GO)
 
-4. **Extract from research brief**:
+5. **Extract from research brief**:
    - Target venue and format requirements
    - Required sections, figures, tables
-   - Comparator methods (must appear in ALL tables)
+   - Comparator methods and the experiments where each applies
    - Notation conventions and macros
    - Reference papers list
 
-5. **Plan production evaluations** (what to scale from Phase 2):
+6. **Plan production evaluations** (what to scale from Phase 2):
    - What Phase 2 ran at reduced computational budget → scale to
      production-scale computation as specified in the research brief
    - Additional scenarios from the brief not covered in Phase 2's stress tests
    - Do NOT add novel evaluation types — only scale existing ones and add
      scenarios within existing types
 
-6. **Write initial plan** to `pipeline/phase3_write/decision_log.md`:
+7. **Write initial plan** to `pipeline/phase3_write/decision_log.md`:
    ```markdown
    # Write-Manuscript Decision Log
    ## Plan
@@ -242,7 +254,7 @@ Invoke paper-modeler (Task agent) with:
 After the Modeler completes:
 
 - [ ] `pipeline/phase3_write/data/` contains result CSVs
-- [ ] `pipeline/phase3_write/figures/` contains at least 2 PDF figures
+- [ ] `pipeline/phase3_write/figures/` contains the displays required by the manuscript plan
 - [ ] `pipeline/phase3_write/briefings/modeling_briefing.md` exists
 - [ ] `pipeline/phase3_write/briefings/formula_code_audit.md` exists with ZERO unresolved MISMATCH rows
 - [ ] `pipeline/phase3_write/briefings/anomaly_log.md` exists
@@ -297,8 +309,9 @@ Invoke paper-writer (Task agent) with:
   Also create pipeline/phase3_write/references.bib with initial bibliography entries.
 
   ## Specific Instructions
-  - Write the full Methods section with all mathematical details
-  - Include all propositions and proofs from the methodology spec
+  - Write the planned main Methods section with sufficient assumptions and intuition
+  - Place each proposition/proof in main text, supplement or preserved technical archive
+    according to manuscript_plan.md; preserve traceability, not mandatory main-text length
   - For every equation, READ pipeline/phase3_write/briefings/formula_code_audit.md
     and copy the 'Reconciled LaTeX' column verbatim. Do NOT re-derive
     consistency from spec/code yourself — paper-modeler is the audit owner
@@ -341,7 +354,7 @@ Invoke paper-writer (Task agent) with:
   prompt: "[Full content of .claude/skills/paper-writer/SKILL.md]
 
   ## Your Deliverable
-  Write the Results section with all tables and figure references.
+  Write the Results section with the selected main-text displays in manuscript_plan.md.
 
   ## Files to Read Before Writing
   - Production data: pipeline/phase3_write/data/*.csv (ALL files)
@@ -353,12 +366,11 @@ Invoke paper-writer (Task agent) with:
   - Research brief: [path] (for comparator list)
 
   ## Specific Instructions
-  - Create one table per evaluation type
-  - Read pipeline/phase2_validate/comparator_inventory.md; every FULL ID
-    must appear in EVERY results table (do NOT re-derive comparator list
-    from the brief — the inventory is authoritative)
+  - Select or combine displays by scientific question; keep exhaustive evaluation grids in the archive
+  - Read pipeline/phase2_validate/comparator_inventory.md; include every FULL ID
+    applicable to each comparison (the inventory is authoritative about scope)
   - Highlight where the method wins AND where it ties or loses
-  - Reference all figures with proper captions and labels
+  - Reference selected manuscript figures with proper captions and labels
   - Follow table placement policy (main text vs supplementary)
   - Run the claim-vs-data verification protocol (MANDATORY)
   - All numerical values must trace to a CSV file in data/"
@@ -381,25 +393,22 @@ Invoke paper-writer (Task agent) with:
 
   ## Specific Instructions
   - Read pipeline/phase3_write/briefings/anomaly_log.md (paper-modeler-owned).
-    For every Type 1–3 anomaly, write a Discussion paragraph that REFERENCES
-    THE ANOMALY ID and covers WHAT/WHY/WHEN/MEANING. Do NOT re-detect anomalies.
+    Account for each Type 1–3 anomaly in an evidence disposition log. Group related
+    findings in ordinary scientific prose; retain material adverse conclusions in the main
+    text and supporting detail in its planned artifact. Do NOT re-detect anomalies.
   - Run the claim-vs-data verification protocol (MANDATORY)
-  - Discussion should cover 5 focused topics:
-    1. Method performance and robustness tradeoff
-    2. Comparison to alternative paradigms and practical considerations
-    3. Notable patterns and anomalies
-    4. Limitations
-    5. Future work
+  - Write a focused Discussion within the plan, choosing the interpretation, limitations
+    and next steps needed by this paper rather than filling a five-topic template
   - Write the Abstract LAST, after reading the complete manuscript
   - Include supplementary tables in a Web Appendix
-  - Every supplementary table must be referenced in the main text with
-    a 1-sentence inline summary
+  - Link supporting supplementary results at the relevant argument; related tables may
+    share a reference and summary rather than adding one paragraph per table
   - Report any conditions/caveats from the validation report honestly"
 ```
 
 ### After Each Writer Dispatch
 
-1. Verify the section was written (read manuscript.tex, check line count)
+1. Read the section against its purpose and length allowance; consolidate or relocate excess before drafting the next section
 2. Check for LaTeX compilation: `pdflatex --draftmode pipeline/phase3_write/manuscript.tex`
 3. Read the writer's `## Style Self-Check` block and skim the new sections against the
    exemplar (house-style §Reader-first voice). If a section plainly reads as a compressed
@@ -416,7 +425,7 @@ Invoke paper-writer (Task agent) with:
 
 Before dispatching the critic, read `pipeline/phase1_think/methodology_specification.md`,
 section "Minimum Viable Evaluation." For each experiment listed:
-1. Is it present in the manuscript?
+1. Is it accounted for in the planned main text, supplement or evidence archive?
 2. Does the manuscript version match the spec's description?
    (Same setup, same comparators, same analysis type)
 3. If the manuscript version DEVIATES from the spec, document the deviation
@@ -533,18 +542,18 @@ those paragraphs. No further passes after that.
 
 ### F.3 Final Verification
 
-- [ ] `manuscript.tex` exists and is >500 lines
-- [ ] `figures/` contains at least 2 PDF figures
-- [ ] `references.bib` exists with at least 10 entries
+- [ ] Main manuscript answers its central question within the source-grounded plan; no minimum line count
+- [ ] Planned figures exist; no arbitrary minimum figure count
+- [ ] Bibliography contains the sources actually needed; no minimum citation count
 - [ ] `data/` contains production evaluation CSVs
 - [ ] All figures referenced in text exist on disk
-- [ ] All tables include every FULL ID from `comparator_inventory.md`
+- [ ] Comparison tables include the FULL IDs applicable to their scientific question
 - [ ] All bibliography entries are referenced in text
 - [ ] LaTeX compiles without errors
 - [ ] Evaluation CSVs with known ground truth exist in `data/`
 - [ ] MC standard errors present in all Monte Carlo result CSVs
 - [ ] `formula_code_audit.md` exists with zero unresolved MISMATCH rows
-- [ ] `anomaly_log.md` exists; every Type 1–3 anomaly referenced in Discussion
+- [ ] Required anomalies have scientific interpretation and traceable artifact placement; material adverse findings remain visible
 - [ ] F.2b ran, and its reader-first read is logged. Record the advisory comparison for the
       pipeline report: `python3 .claude/skills/house-style/scripts/style_metrics.py
       pipeline/phase3_write/manuscript.tex --compare --sections --genre <G> [--ref <exemplar>]
@@ -576,8 +585,9 @@ Append to `decision_log.md`:
 
 - Run production evaluations including evaluation with known ground truth. Report MC standard errors for all Monte Carlo estimates
 - Generate publication-quality figures and tables
-- Write all standard sections (abstract, intro, methods, results, discussion)
-- Include all comparators in all tables (comparator non-negotiability)
+- Write the sections required by the article purpose and manuscript plan; the
+  standard methods-paper inventory is an option, not a mandatory genre template.
+- Include all applicable comparators in the planned comparison tables
 - Verify every equation against validated code (formula-code consistency)
 - Run anomaly detection protocol on all results
 - Run claim-vs-data verification protocol

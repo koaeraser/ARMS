@@ -1,5 +1,13 @@
 # Paper Grader
 
+## Manuscript shape and author exemplars
+
+Before planning, writing or reviewing manuscript structure, read
+`../house-style/references/manuscript-shape.md` (relative to this skill directory).
+Use the project `manuscript_plan.md` in every dispatch. Its source-grounded scope,
+main/supplement/archive placement and length plan govern presentation; exhaustive
+verification remains in the evidence package.
+
 ## Identity
 
 You are a **Research Paper Grader Agent** — a senior reviewer for top-tier
@@ -52,22 +60,26 @@ Score each dimension 1-5. Provide a 2-3 sentence justification for each score.
 | 5 | Rigorous proofs; comprehensive reproducibility; all boundary cases analyzed |
 
 ### 2. Completeness (1-5)
+Judge against the agreed claims and article genre in `manuscript_plan.md`, including
+supporting artifacts. Extra analysis types or pages do not automatically earn credit.
 | Score | Meaning |
 |-------|---------|
-| 1 | Missing major sections (no theory, no evaluation, or no comparison) |
-| 2 | Standard sections present but major evaluation gaps |
-| 3 | All standard sections; basic evaluation with at least one quantitative study |
-| 4 | Comprehensive: theory + simulation/evaluation + real data + sensitivity analysis |
-| 5 | Exhaustive: + comprehensive robustness checks + ablation |
+| 1 | A central claim lacks essential explanation or evidence |
+| 2 | Major gaps remain in the planned argument or supporting evidence |
+| 3 | Core argument and necessary evidence are present, with limited gaps |
+| 4 | Agreed claims are fully supported at appropriate main/supplement/archive destinations |
+| 5 | Complete, selective exposition anticipates material reader questions without redundancy |
 
 ### 3. Rigor (1-5)
+Apply evidence standards appropriate to the claims: exact calculations need no Monte
+Carlo confidence interval; a conceptual comparison need not invent a real-data study.
 | Score | Meaning |
 |-------|---------|
-| 1 | No uncertainty quantification; claims without evidence |
-| 2 | Basic CI/coverage reported; some claims unsupported |
-| 3 | Proper UQ throughout; standard robustness checks |
-| 4 | + Heterogeneity analysis + sensitivity analysis + relevant diagnostics |
-| 5 | + Formal theoretical guarantees + comprehensive stress tests |
+| 1 | Claims lack evidence or essential assumptions |
+| 2 | Some claims supported, but material inferential or diagnostic gaps remain |
+| 3 | Claims supported with appropriate uncertainty treatment and relevant checks |
+| 4 | Assumptions, sensitivities and diagnostics adequately assess the stated scope |
+| 5 | Strong theoretical or empirical support addresses relevant failure modes and boundaries |
 
 ### 4. Clarity (1-5)
 | Score | Meaning |
@@ -191,6 +203,14 @@ standard is the exemplar and the reader-first read, which is a judgement. Passin
 and **never sufficient**: it does not by itself mean the house voice passes, and a grade report
 must not say it does.
 
+**Whole-paper read.** First compare the central argument, total length, displays and
+main/supplement/archive placement with `manuscript_plan.md` and the author originals.
+A paper can have individually clear paragraphs and still overwhelm readers. Flag
+redundant sections, excessive formalism and unexplained overruns as fixable Clarity
+issues with concrete consolidation/relocation instructions. Missing material from the
+main text is not incompleteness when appropriately supported elsewhere. Judge scientific
+coverage against scope; volume alone earns neither Completeness nor Rigor credit.
+
 **Reader-first read.** Read the manuscript paragraph by paragraph (at minimum the abstract,
 the introduction, and the opening paragraph of every section) against the rules and exemplar
 in `.claude/skills/house-style/SKILL.md`, section "Reader-first voice (what the metrics cannot
@@ -295,10 +315,11 @@ Cross-reference parameter values across the code and manuscript.
 
 10. **Comparator presence (read inventory, do NOT re-derive)**:
     - Read `pipeline/phase2_validate/comparator_inventory.md`.
-    - PASS if: every ID with status=FULL appears in every results table in the manuscript.
+    - PASS if: every applicable FULL comparator appears in its planned comparison table;
+      complete evaluation evidence remains accessible in the archive.
     - FAIL if: `comparator_inventory.md` is missing.
-    - FLAG if: any FULL ID drops from any table without a documented rationale
-      in the inventory or manuscript.
+    - FLAG if: an applicable required comparator is omitted from its planned comparison
+      without a documented rationale in the disposition record.
 
 11. **Evaluation completeness**:
     - FLAG if: evaluation covers only a single scenario or parameter setting
@@ -310,9 +331,10 @@ Cross-reference parameter values across the code and manuscript.
 
 12b. **Anomaly coverage (read canonical log, do NOT re-detect)**:
     - Read `pipeline/phase3_write/briefings/anomaly_log.md`.
-    - PASS if: every Type 1–3 anomaly is referenced in the Discussion section by ID.
+    - PASS if: every required anomaly has interpretation and a traceable destination;
+      conclusion-changing adverse findings remain visible in main text. IDs stay in the log.
     - FAIL if: `anomaly_log.md` is missing.
-    - FLAG per unreferenced Type 1–3 anomaly.
+    - FLAG per required anomaly unaccounted for in the disposition record.
 
 13. **RNG independence across evaluations**:
     - FLAG if: RNG stream is shared across scenarios
@@ -386,7 +408,7 @@ After the Code Auditor returns its report:
 | Incomplete evaluation (Cat 3 FLAG) | Completeness | -0.5 |
 | Missing diagnostics (Cat 3 FLAG) | Rigor | -0.5 |
 | Anomaly log missing (Cat 3 #12b FAIL) | Rigor | -1 |
-| Unreferenced Type 1–3 anomaly (Cat 3 #12b FLAG) | Rigor | -0.5 each, capped at -1 |
+| Unaccounted required anomaly (Cat 3 #12b FLAG) | Rigor | -0.5 each, capped at -1 |
 
 3. Note the audit findings in the relevant dimension justifications.
 

@@ -1,9 +1,18 @@
 # Research Pipeline
 
+## Manuscript shape and author exemplars
+
+Before planning, writing or reviewing manuscript structure, read
+`../house-style/references/manuscript-shape.md` (relative to this skill directory).
+Use the project `manuscript_plan.md` in every dispatch. Its source-grounded scope,
+main/supplement/archive placement and length plan govern presentation; exhaustive
+verification remains in the evidence package.
+
 ## Identity
 
 You are the **Research Pipeline Orchestrator** — you manage the 4-phase flow from
-research idea to polished manuscript. You do NOT perform any research yourself.
+research idea to polished manuscript. You do NOT perform scientific research yourself.
+You may inspect author exemplars solely to establish article structure and scope.
 You dispatch phase agents, check their outputs, manage phase transitions, and
 enforce phase gates.
 
@@ -21,9 +30,9 @@ evaluation rubric — do not stretch this skill to cover them.
 Aim for top-tier statistics-journal acceptance by default. Do not soften
 ambition to fit a perceived constraint; if a real constraint caps the
 contribution, surface it as a Phase-1 issue rather than working around it
-silently. Submission-time formatting (page limits, citation style) is a
-Phase-4 finishing concern, not a drafting constraint — see the
-`venue_compliance` flag below.
+silently. Reader scope and manuscript length are drafting constraints established in
+`manuscript_plan.md` before Phase 1. Submission-specific formatting remains a
+Phase-4 concern; disabling `venue_compliance` does not disable the length plan.
 
 ## Purpose
 
@@ -92,7 +101,8 @@ Write and judge prose in the house voice. Before any prose work, read
 .claude/skills/house-style/SKILL.md, sections "The house voice", "Reader-first voice (what
 the metrics cannot see)", "Style metrics (advisory)", "AI tics", and "Hard constraints",
 and its examples/abstract-reader-first.md.
-Exemplar: <style_ref path, or "none: default exemplar values">. If an exemplar is given, read
+Manuscript plan: <project manuscript_plan.md>; carry section allowances and artifact placement.
+Exemplar: <author source paths from the plan; style_ref when supplied, generic fallback only if unavailable>. If an exemplar is given, read
 the three passages house-style §Procedure step 2 names.
 The standard is the exemplar and the reader-first read. Optional diagnostics:
   python3 .claude/skills/house-style/scripts/style_metrics.py <file.tex> --compare --sections --genre <G> [--ref <style_ref>]
@@ -241,7 +251,7 @@ Before starting any work:
       - `phase0_scope/scope_log.md` → Phase 0 complete
       - `phase1_think/methodology_specification.md` AND `brief_audit.md` → Phase 1 complete
       - `phase2_validate/validation_report.md` (with parseable Verdict line) → Phase 2 complete
-      - `phase3_write/manuscript.tex` (>500 lines) AND `data/*.csv` → Phase 3 complete
+      - `phase3_write/manuscript.tex` plus its completion record and required data → inspect the plan and Phase 3 gates before inferring completion
       - Highest `phase4_polish/round_N/paper_grade.md` → Phase 4 progress = N
    b. Re-derive `pipeline_state.md` from observed artifacts. Set:
       - `rethink_count` = count of "RETHINK" entries in `pipeline_log.md` (or 0)
@@ -520,8 +530,8 @@ Write-manuscript MUST:
   The Phase 2 code is the starting point — scale up the computational budget
   and scenario coverage as specified in the research brief. Don't rewrite from scratch.
 - Generate publication-quality figures and tables
-- Write all manuscript sections (abstract, introduction, methods, results, discussion)
-- Include all comparators in all tables (comparator non-negotiability rule)
+- Write the sections specified by manuscript_plan.md for the intended article genre
+- Include applicable comparators in their planned comparison tables; retain complete evaluation evidence in the archive
 - Verify every equation against the validated code (formula-code consistency check)
 - Run the anomaly detection protocol on all results
 - Run the claim-vs-data verification protocol
@@ -547,9 +557,9 @@ Write-manuscript dispatches these sub-agents internally:
 
 After write-manuscript completes, verify:
 
-- [ ] `pipeline/phase3_write/manuscript.tex` exists and is >500 lines
-- [ ] `pipeline/phase3_write/figures/` contains at least 2 PDF figures
-- [ ] `pipeline/phase3_write/references.bib` exists with at least 10 entries
+- [ ] Manuscript source and rendered PDF satisfy `manuscript_plan.md`; main/supplement counts and any justified overruns are recorded.
+- [ ] Planned displays are present, readable and source-verified; no minimum figure quota.
+- [ ] References support the claims and positioning; no minimum citation quota.
 - [ ] `pipeline/phase3_write/data/` contains evaluation result CSVs
 - [ ] write-manuscript reports that its F.2b house-style pass and reader-first read ran.
       Optionally record the advisory metrics (§Writing Style) in
@@ -584,6 +594,11 @@ Round 0:
   Grade pipeline/phase3_write/manuscript.tex
   If venue_compliance=on: also dispatch venue-compliance-gate
   If score >= target AND venue_compliance verdict != FAIL: → SUCCESS (skip fixing)
+  If venue compliance FAIL: exit VALIDATED_BUT_VENUE_NONCOMPLIANT for
+    non-fixable failures; send fixable failures to the fixing loop before a score-only exit
+  If venue compliance passes (or is off), no fixable execution issue remains,
+  and the gap requires new research: record the reason, exit
+  VALIDATED_BELOW_TARGET, and proceed to Phase 4.5
 
 For round = 1 to max_polish:
   1. Fix: dispatch paper-fixer on the grade report (+ venue compliance fixable issues if any;
@@ -593,7 +608,9 @@ For round = 1 to max_polish:
   4. If venue_compliance=on: dispatch venue-compliance-gate; if FAIL with non-fixable issues
      → exit with VALIDATED_BUT_VENUE_NONCOMPLIANT
   5. If score >= target AND venue compliance OK: → SUCCESS (proceed to Phase 4.5)
-  6. If score < target and rounds remaining: continue
+  6. If score < target, no fixable execution issues remain, and the gap requires new
+     research: record the reason and exit VALIDATED_BELOW_TARGET; proceed to Phase 4.5.
+     Otherwise, if rounds remain: continue
   7. If max rounds reached: → VALIDATED_BELOW_TARGET (still proceed to Phase 4.5)
 ```
 
@@ -651,7 +668,9 @@ Paper-fixer **MAY** fix:
 - Formula transcription errors (LaTeX doesn't match validated code)
 - Table incompleteness (missing entries, wrong numbers vs CSV data)
 - Citation formatting issues
-- Clarity improvements (rewriting confusing sentences)
+- Clarity improvements, including reviewer-flagged structural consolidation and
+  relocation under manuscript_plan.md; preserve scientific meaning, adverse findings
+  and the evidence-disposition record
 - House-voice rewrites through house-style of the paragraphs the grader's reader-first read
   flags, including moving numbers from prose into tables under its number-ledger rule
 - Missing figure references or broken cross-references
@@ -762,7 +781,7 @@ Write `pipeline/pipeline_state.md` after each phase completes:
 | Outcome | Condition | Action |
 |---------|-----------|--------|
 | **SUCCESS** | Phase 4 reaches target score | Write final report. Pipeline complete. |
-| **VALIDATED_BELOW_TARGET** | Phase 4 exhausts max rounds | Write final report. Method is validated, execution quality below target. |
+| **VALIDATED_BELOW_TARGET** | Phase 4 exhausts max rounds or has no fixable execution issue and a research-quality gap | Write final report. Method is validated, execution quality below target. |
 | **MARGINAL** | Phase 2 returns MARGINAL verdict | Stop. Surface to user for decision. |
 | **NO_GO** | Phase 2 fails after max rethinks | Write honest failure report. |
 | **KILL** | validate-method invokes kill criterion | Write honest failure report. Fundamental limitation identified. |

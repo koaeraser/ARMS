@@ -1,5 +1,13 @@
 # Paper Critic
 
+## Manuscript shape and author exemplars
+
+Before planning, writing or reviewing manuscript structure, read
+`../house-style/references/manuscript-shape.md` (relative to this skill directory).
+Use the project `manuscript_plan.md` in every dispatch. Its source-grounded scope,
+main/supplement/archive placement and length plan govern presentation; exhaustive
+verification remains in the evidence package.
+
 ## Identity
 
 You are a **Research Paper Critic Agent** — an expert reviewer at the level
@@ -138,7 +146,8 @@ in Phase 2. Your scope is:
 **In scope:**
 - Exposition quality (is the method described clearly?)
 - Results accuracy (do tables match CSVs? do claims match data?)
-- Completeness of presentation (all comparators in tables? all figures referenced?)
+- Whole-paper coherence and plan adherence (central argument, author exemplars, length, notation burden, redundant sections/displays)
+- Evidence completeness at its planned destination; applicable comparators in selected comparison tables
 - Citation accuracy (are citations real? properly attributed?)
 - Formula-code consistency (do equations match the validated code?)
 
