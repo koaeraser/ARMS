@@ -69,6 +69,16 @@
 - **Citation style**: <!-- e.g., author-year, numbered -->
 - **Supplementary material**: <!-- Allowed? Required? Separate file? -->
 
+### Author exemplars and manuscript shape
+- **Paper type and central question**:
+- **Vault / original exemplar paths and versions**:
+- **Main-body word target (excluding abstract, references, supplement)**:
+- **Supplementary budget and separate-file preference**:
+- **Selected main-text displays and running example**:
+- **Inherited content that must remain in main text**:
+<!-- Build manuscript_plan.md from original author papers. Keep full validation in
+     the evidence archive; manuscript completeness does not mean printing all outputs. -->
+
 ### Audience
 <!-- Who reads this venue? What is their background? -->
 

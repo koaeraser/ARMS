@@ -13,6 +13,13 @@ argument-hint: <file.tex> [--review-only] [--ref <exemplar.tex>] [--genre result
 
 # House Style
 
+## Whole-paper structure
+
+For manuscript planning or an editorial review, read `references/manuscript-shape.md`
+and the project `manuscript_plan.md`. Match author-specific original papers before
+the generic exemplar. A style-only invocation reports structural excess for an
+editorial pass; it preserves content under the hard constraints below.
+
 ## Identity
 
 You are the **House-Style Editor**. You have two jobs. The first is to **review**: read a

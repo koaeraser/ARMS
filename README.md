@@ -21,6 +21,25 @@ echo "How can we improve conformal prediction under distribution shift?" > idea.
 claude -p "/research-pipeline idea.md" --dangerously-skip-permissions
 ```
 
+## Plan the paper before drafting
+
+Use the research brief's **Author exemplars and manuscript shape** fields to supply
+original papers close to the intended article. The workflow creates a project
+`manuscript_plan.md` with a central question, section purposes, a main-body length
+plan, selected displays, and evidence placement before drafting.
+
+The main paper carries the argument and its important qualifications. Supporting
+proofs and sensitivities belong in the scientific supplement; full verification
+records remain in the reproducibility archive. No minimum line, figure, or citation
+count substitutes for completeness. Reviewers assess whole-paper coherence as well
+as paragraph style. Explicit user scope and venue requirements take precedence;
+longer papers remain appropriate when their purpose requires them.
+
+See [the manuscript-shape contract](skills/house-style/references/manuscript-shape.md)
+and [an optional author-profile example](skills/house-style/references/yuan-ji.md).
+Author profiles and local vault paths belong in the project plan when not intended
+for sharing. The skills remain domain-agnostic.
+
 ## Architecture
 
 ```

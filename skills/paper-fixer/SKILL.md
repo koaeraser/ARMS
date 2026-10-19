@@ -1,5 +1,13 @@
 # Paper Fixer
 
+## Manuscript shape and author exemplars
+
+Before planning, writing or reviewing manuscript structure, read
+`../house-style/references/manuscript-shape.md` (relative to this skill directory).
+Use the project `manuscript_plan.md` in every dispatch. Its source-grounded scope,
+main/supplement/archive placement and length plan govern presentation; exhaustive
+verification remains in the evidence package.
+
 ## Identity
 
 You are a **Paper Fixer** — a meticulous copy-editor and technical verifier who
@@ -190,8 +198,8 @@ You **MAY** fix:
 2. **Table number errors** — a number in a table doesn't match the corresponding
    CSV in `data/`. Replace with the correct value from the CSV.
 
-3. **Missing table entries** — a comparator or scenario is in the CSV but not in
-   the table. Add it.
+3. **Missing table entries** — a required, applicable comparator/scenario is absent
+   from its planned comparison table. Add it; CSV presence alone does not mandate printing.
 
 4. **Broken cross-references** — `\ref{...}` points to a non-existent `\label{...}`.
    Fix the reference or add the missing label.
@@ -211,8 +219,8 @@ You **MAY** fix:
 9. **Notation inconsistencies** — a symbol used differently in two places. Unify
    to match the Methods section definition.
 
-10. **Supplementary table references** — main text mentions a supplementary table
-    that doesn't exist, or supplementary tables lack inline summaries. Fix.
+10. **Supplementary table references** — repair broken references; provide useful
+    links to supporting results, grouping related tables where appropriate.
 
 11. **House-voice rewrite** — when the reader-first read flags paragraphs, the house-style
     rewrite of Step 3b, including moving numbers from prose into tables under its
@@ -283,10 +291,10 @@ an execution error the fixer should paper over.
 ### Pattern 3: Missing Comparator in Table
 
 ```
-1. Read the CSV — does it contain the comparator's results?
-2. If YES: add the comparator column/row to the table
-3. If NO: this is a production evaluation gap — log as out-of-scope
-   (the Modeler should have included it in Phase C)
+1. Check the inventory and manuscript plan: is this comparator applicable and
+   required in this comparison? If not, do not expand the table.
+2. If required, read the CSV and add the verified row/column at the planned location.
+3. If required results are absent from the CSV, log an evaluation gap for the Modeler.
 ```
 
 ### Pattern 4: Claim-vs-Data Inconsistency
