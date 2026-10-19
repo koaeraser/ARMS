@@ -299,3 +299,11 @@ Developed March 2026. The v1 system (simple write-grade-fix loop) identified the
 ## License
 
 CC BY-NC 4.0 (Creative Commons Attribution-NonCommercial 4.0 International)
+
+### Author synopsis checkpoint
+
+Before full drafting or substantive revision, ARMS prepares a section-by-section
+prose synopsis and plain-language abstract sketch, obtains writer/critic feedback,
+and pauses for human author approval. Resume checks approval of that synopsis;
+a run request or automated review alone cannot open the gate. See
+`skills/house-style/references/synopsis-gate.md`.

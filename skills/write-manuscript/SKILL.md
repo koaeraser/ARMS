@@ -1,5 +1,13 @@
 
 
+## Synopsis approval before full drafting
+
+Read `../house-style/references/synopsis-gate.md`. Before any full-paper drafting
+or substantive revision, prepare and review `paper_synopsis.md`, then stop for
+human author approval. On resume, verify approval of the current synopsis before
+any full-paper drafting dispatch. An existing manuscript_plan.md or agent review is not approval.
+This gate applies to this skill even when invoked outside the main pipeline.
+
 ## Contribution evidence (shared contract)
 
 Read `../house-style/references/contribution-evidence.md` before selecting, writing,

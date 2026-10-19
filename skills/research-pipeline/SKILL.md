@@ -1,5 +1,13 @@
 
 
+## Synopsis approval before full drafting
+
+Read `../house-style/references/synopsis-gate.md`. Before any full-paper drafting
+or substantive revision, prepare and review `paper_synopsis.md`, then stop for
+human author approval. On resume, verify approval of the current synopsis before
+any full-paper drafting dispatch. An existing manuscript_plan.md or agent review is not approval.
+This gate applies to this skill even when invoked outside the main pipeline.
+
 ## Contribution evidence (shared contract)
 
 Read `../house-style/references/contribution-evidence.md` before selecting, writing,
@@ -249,6 +257,12 @@ pipeline/
 ## Startup: Resume Check
 
 Before starting any work:
+
+First check the current brief and synopsis approval under the shared gate. If
+`AWAITING_SYNOPSIS_APPROVAL` is set, or the current substantive revision lacks
+matching author approval, only synopsis preparation/review and permitted source
+or numerical checks may proceed. This check takes precedence over the phase
+recovery rules below; old manuscript files cannot establish synopsis approval.
 
 1. Check if `pipeline/pipeline_state.md` exists.
 2. **If YES and parseable** (has all required keys: phase, status, retry counters, polish_round):
@@ -531,6 +545,15 @@ compress it to "try again" — the architect needs to know exactly what failed a
 ---
 
 ## Phase 3: WRITE
+
+### Mandatory entry gate
+
+Before the dispatch below, complete the shared synopsis gate. Set pipeline state
+`status: AWAITING_SYNOPSIS_APPROVAL` while awaiting the author. This status is a
+normal pause; it is not SUCCESS, MARGINAL or NO_GO. Resume must check it before
+inferring progress from existing manuscript files. Phase 4 polishing cannot be
+used to bypass this gate for a new substantive revision.
+
 
 ### Dispatch
 
@@ -864,6 +887,8 @@ At pipeline completion (any outcome), write `pipeline/final_report.md`:
 - **Rethinks**: [count]
 
 ## Phase 3: WRITE (if executed)
+- **Synopsis status**: [PENDING / CHANGES_REQUESTED / APPROVED / explicit user override]
+- **Synopsis version and approval record**: [paths and matching version/hash]
 - **Manuscript**: [path]
 - **Pages**: [count]
 - **Figures**: [count]
